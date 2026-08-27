@@ -64,14 +64,14 @@
                                     <div class="sm:col-span-2"><label class="{{ $label }}">{{ __('app.driver_name') }}</label><input wire:model="drivers.{{ $i }}.driver_name" class="{{ $input }}"></div>
                                     <div><label class="{{ $label }}">{{ __('app.dob') }}</label><input type="date" wire:model="drivers.{{ $i }}.dob" class="{{ $input }}"></div>
                                     <div><label class="{{ $label }}">{{ __('app.cdl_number') }}</label><input wire:model="drivers.{{ $i }}.cdl_number" class="{{ $input }}"></div>
-                                    <div><label class="{{ $label }}">{{ __('app.state_issued') }}</label><input wire:model="drivers.{{ $i }}.state_issued" class="{{ $input }}"></div>
-                                    <div><label class="{{ $label }}">{{ __('app.experience') }}</label><input wire:model="drivers.{{ $i }}.experience" class="{{ $input }}"></div>
+                                    <div><label class="{{ $label }}">{{ __('app.state_issued') }}</label><input maxlength="40" wire:model="drivers.{{ $i }}.state_issued" class="{{ $input }}"></div>
+                                    <div><label class="{{ $label }}">{{ __('app.experience') }}</label><input maxlength="60" wire:model="drivers.{{ $i }}.experience" class="{{ $input }}"></div>
                                     <div><label class="{{ $label }}">{{ __('app.date_of_hire') }}</label><input type="date" wire:model="drivers.{{ $i }}.date_of_hire" class="{{ $input }}"></div>
                                 @else
-                                    <div><label class="{{ $label }}">{{ __('app.year') }}</label><input wire:model="{{ $col }}.{{ $i }}.year" class="{{ $input }}"></div>
-                                    <div><label class="{{ $label }}">{{ __('app.make') }}</label><input wire:model="{{ $col }}.{{ $i }}.make" class="{{ $input }}"></div>
-                                    <div><label class="{{ $label }}">{{ __('app.vin') }}</label><input wire:model="{{ $col }}.{{ $i }}.vin" class="{{ $input }}"></div>
-                                    <div><label class="{{ $label }}">{{ __('app.body_type') }}</label><input wire:model="{{ $col }}.{{ $i }}.body_type" class="{{ $input }}"></div>
+                                    <div><label class="{{ $label }}">{{ __('app.year') }}</label><input maxlength="4" inputmode="numeric" wire:model="{{ $col }}.{{ $i }}.year" class="{{ $input }}"></div>
+                                    <div><label class="{{ $label }}">{{ __('app.make') }}</label><input maxlength="120" wire:model="{{ $col }}.{{ $i }}.make" class="{{ $input }}"></div>
+                                    <div><label class="{{ $label }}">{{ __('app.vin') }}</label><input maxlength="17" wire:model="{{ $col }}.{{ $i }}.vin" class="{{ $input }}"></div>
+                                    <div><label class="{{ $label }}">{{ __('app.body_type') }}</label><input maxlength="120" wire:model="{{ $col }}.{{ $i }}.body_type" class="{{ $input }}"></div>
                                     <div><label class="{{ $label }}">{{ __('app.stated_value') }}</label><input type="number" wire:model="{{ $col }}.{{ $i }}.stated_value" class="{{ $input }}"></div>
                                 @endif
                             </div>

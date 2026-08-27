@@ -18,9 +18,9 @@ class VehiclesRelationManager extends RelationManager
     {
         return $form->columns(2)->schema([
             Forms\Components\TextInput::make('year')->maxLength(4),
-            Forms\Components\TextInput::make('make'),
-            Forms\Components\TextInput::make('vin')->label('VIN #'),
-            Forms\Components\TextInput::make('body_type'),
+            Forms\Components\TextInput::make('make')->maxLength(190),
+            Forms\Components\TextInput::make('vin')->label('VIN #')->maxLength(17),
+            Forms\Components\TextInput::make('body_type')->maxLength(190),
             Forms\Components\TextInput::make('stated_value')->numeric()->prefix('$'),
         ]);
     }

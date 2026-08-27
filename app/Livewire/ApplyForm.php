@@ -101,12 +101,29 @@ class ApplyForm extends Component
         $this->syncRows('coverages', ['coverage', 'limit_amount', 'deductible', 'premium']);
     }
 
+    /** Column length caps so oversized input can never break the insert. */
+    protected const MAX_LENGTHS = [
+        'year' => 20, 'vin' => 64, 'make' => 190, 'body_type' => 190,
+        'state_issued' => 40, 'experience' => 60, 'cdl_number' => 190,
+        'driver_name' => 190, 'coverage' => 190, 'limit_amount' => 190, 'deductible' => 190,
+    ];
+
     protected function syncRows(string $relation, array $fields): void
     {
         $this->application->{$relation}()->delete();
         foreach (array_values($this->{$relation}) as $i => $row) {
             $payload = collect($fields)
-                ->mapWithKeys(fn ($f) => [$f => (($row[$f] ?? null) === '' ? null : ($row[$f] ?? null))])
+                ->mapWithKeys(function ($f) use ($row) {
+                    $value = $row[$f] ?? null;
+                    if ($value === '' || $value === null) {
+                        return [$f => null];
+                    }
+                    if (is_string($value) && isset(self::MAX_LENGTHS[$f])) {
+                        $value = mb_substr($value, 0, self::MAX_LENGTHS[$f]);
+                    }
+
+                    return [$f => $value];
+                })
                 ->toArray();
             if (collect($payload)->filter()->isEmpty()) {
                 continue;
