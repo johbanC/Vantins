@@ -45,6 +45,7 @@ return [
         'power_units' => 'Unidades de potencia',
         'commodities_hauled' => 'Mercancías transportadas',
         'total_policy_premium' => 'Prima total de la póliza',
+        'total_policy_premium_hint' => 'Se calcula automáticamente sumando la prima de cada cobertura.',
         'agency_name' => 'Nombre de la agencia',
         'agency_phone' => 'Teléfono de la agencia',
         'contact_agent_name' => 'Nombre del agente de contacto',

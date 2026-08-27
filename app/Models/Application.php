@@ -69,6 +69,14 @@ class Application extends Model
         return $this->hasMany(Coverage::class)->orderBy('sort_order');
     }
 
+    /** Total Policy Premium is always the sum of the coverage premiums. */
+    public function recalculatePremium(): void
+    {
+        $sum = (float) $this->coverages()->sum('premium');
+
+        $this->forceFill(['total_policy_premium' => $sum > 0 ? $sum : null])->saveQuietly();
+    }
+
     /** Mark a new status and stamp its timestamp column when present. */
     public function markStatus(string $status): void
     {

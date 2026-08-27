@@ -30,11 +30,12 @@ class ApplyForm extends Component
     public string $signerName = '';
     public ?string $signatureData = null; // base64 PNG data URL from signature pad
 
+    // total_policy_premium is derived from the coverage premiums, never typed here.
     protected array $singleFields = [
         'company_name', 'company_representative', 'phone_number', 'email',
         'mailing_address', 'parking_address', 'effective_date', 'us_dot_number',
         'radius_of_operations', 'years_in_business', 'power_units', 'commodities_hauled',
-        'total_policy_premium', 'agency_name', 'agency_phone', 'contact_agent_name',
+        'agency_name', 'agency_phone', 'contact_agent_name',
     ];
 
     public function mount(string $token): void
@@ -99,6 +100,10 @@ class ApplyForm extends Component
         $this->syncRows('vehicles', ['year', 'make', 'vin', 'body_type', 'stated_value']);
         $this->syncRows('trailers', ['year', 'make', 'vin', 'body_type', 'stated_value']);
         $this->syncRows('coverages', ['coverage', 'limit_amount', 'deductible', 'premium']);
+
+        // Mass-delete in syncRows skips model events, so recompute explicitly.
+        $this->application->recalculatePremium();
+        $this->application->refresh();
     }
 
     /** Column length caps so oversized input can never break the insert. */

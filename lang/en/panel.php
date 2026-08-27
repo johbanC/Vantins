@@ -45,6 +45,7 @@ return [
         'power_units' => 'Power units',
         'commodities_hauled' => 'Commodities hauled',
         'total_policy_premium' => 'Total policy premium',
+        'total_policy_premium_hint' => 'Calculated automatically from the sum of the coverage premiums.',
         'agency_name' => 'Agency name',
         'agency_phone' => 'Agency phone',
         'contact_agent_name' => 'Contact agent name',

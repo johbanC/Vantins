@@ -13,6 +13,14 @@ class Coverage extends Model
         'premium' => 'decimal:2',
     ];
 
+    protected static function booted(): void
+    {
+        $sync = fn (Coverage $coverage) => Application::find($coverage->application_id)?->recalculatePremium();
+
+        static::saved($sync);
+        static::deleted($sync);
+    }
+
     public function application(): BelongsTo
     {
         return $this->belongsTo(Application::class);

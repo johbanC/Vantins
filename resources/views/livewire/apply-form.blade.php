@@ -105,9 +105,10 @@
                 @endforelse
                 <button wire:click="addRow('coverages')" class="{{ $btnGhost }}">+ {{ __('app.add') }}</button>
 
-                <div class="mt-4 border-t border-white/10 pt-4">
-                    <label class="{{ $label }}">{{ __('app.total_policy_premium') }}</label>
-                    <input type="number" wire:model="form.total_policy_premium" class="{{ $input }} sm:max-w-xs">
+                @php $premiumTotal = collect($coverages)->sum(fn ($r) => (float) ($r['premium'] ?? 0)); @endphp
+                <div class="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
+                    <span class="{{ $label }} mb-0">{{ __('app.total_policy_premium') }}</span>
+                    <span class="text-lg font-semibold text-brand">${{ number_format($premiumTotal, 2) }}</span>
                 </div>
             </div>
         @endif

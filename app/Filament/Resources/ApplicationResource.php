@@ -80,7 +80,12 @@ class ApplicationResource extends Resource
                 ->columns(2)
                 ->hiddenOn('create')
                 ->schema([
-                    Forms\Components\TextInput::make('total_policy_premium')->label(__('panel.field.total_policy_premium'))->numeric()->prefix('$'),
+                    Forms\Components\TextInput::make('total_policy_premium')
+                        ->label(__('panel.field.total_policy_premium'))
+                        ->prefix('$')
+                        ->disabled()
+                        ->dehydrated(false)
+                        ->helperText(__('panel.field.total_policy_premium_hint')),
                     Forms\Components\TextInput::make('agency_name')->label(__('panel.field.agency_name')),
                     Forms\Components\TextInput::make('agency_phone')->label(__('panel.field.agency_phone'))->tel(),
                     Forms\Components\TextInput::make('contact_agent_name')->label(__('panel.field.contact_agent_name')),
