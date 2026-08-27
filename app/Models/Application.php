@@ -25,6 +25,9 @@ class Application extends Model
     protected $casts = [
         'effective_date' => 'date',
         'total_policy_premium' => 'decimal:2',
+        'down_payment' => 'decimal:2',
+        'number_of_payments' => 'integer',
+        'monthly_payment' => 'decimal:2',
         'power_units' => 'integer',
         'disclosure_accepted_at' => 'datetime',
         'submitted_at' => 'datetime',
@@ -42,6 +45,20 @@ class Application extends Model
             $application->locale ??= 'en';
             $application->status ??= 'created';
         });
+
+        // Keep the monthly payment consistent whenever the advisor edits the plan.
+        static::saving(fn (Application $application) => $application->applyPaymentPlan());
+    }
+
+    /** Monthly Payment = (Total Policy Premium - Down Payment) / # of Payments. */
+    public function applyPaymentPlan(): void
+    {
+        $n = (int) $this->number_of_payments;
+        $financed = (float) $this->total_policy_premium - (float) $this->down_payment;
+
+        $this->monthly_payment = ($n > 0 && $financed > 0)
+            ? round($financed / $n, 2)
+            : null;
     }
 
     public function creator(): BelongsTo
@@ -74,7 +91,9 @@ class Application extends Model
     {
         $sum = (float) $this->coverages()->sum('premium');
 
-        $this->forceFill(['total_policy_premium' => $sum > 0 ? $sum : null])->saveQuietly();
+        $this->total_policy_premium = $sum > 0 ? $sum : null;
+        $this->applyPaymentPlan();
+        $this->saveQuietly();
     }
 
     /** Mark a new status and stamp its timestamp column when present. */

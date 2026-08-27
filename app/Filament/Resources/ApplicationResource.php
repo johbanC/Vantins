@@ -76,7 +76,8 @@ class ApplicationResource extends Resource
                     Forms\Components\Textarea::make('commodities_hauled')->label(__('panel.field.commodities_hauled'))->columnSpanFull(),
                 ]),
 
-            Forms\Components\Section::make(__('panel.section.finance_agency'))
+            Forms\Components\Section::make(__('panel.section.finance'))
+                ->description(__('panel.section.finance_hint'))
                 ->columns(2)
                 ->hiddenOn('create')
                 ->schema([
@@ -86,13 +87,34 @@ class ApplicationResource extends Resource
                         ->disabled()
                         ->dehydrated(false)
                         ->helperText(__('panel.field.total_policy_premium_hint')),
-                    Forms\Components\TextInput::make('contact_agent_name')->label(__('panel.field.contact_agent_name')),
+                    Forms\Components\TextInput::make('down_payment')
+                        ->label(__('panel.field.down_payment'))
+                        ->prefix('$')
+                        ->numeric(),
+                    Forms\Components\TextInput::make('number_of_payments')
+                        ->label(__('panel.field.number_of_payments'))
+                        ->numeric()
+                        ->minValue(1),
+                    Forms\Components\TextInput::make('monthly_payment')
+                        ->label(__('panel.field.monthly_payment'))
+                        ->prefix('$')
+                        ->disabled()
+                        ->dehydrated(false)
+                        ->helperText(__('panel.field.monthly_payment_hint')),
+                ]),
+
+            Forms\Components\Section::make(__('panel.section.agency'))
+                ->columns(2)
+                ->hiddenOn('create')
+                ->schema([
                     Forms\Components\TextInput::make('agency_name')
                         ->label(__('panel.field.agency_name'))
                         ->disabled()->dehydrated(false),
                     Forms\Components\TextInput::make('agency_phone')
                         ->label(__('panel.field.agency_phone'))
                         ->disabled()->dehydrated(false),
+                    Forms\Components\TextInput::make('contact_agent_name')
+                        ->label(__('panel.field.contact_agent_name')),
                 ]),
 
             Forms\Components\Section::make(__('panel.section.disclosure'))

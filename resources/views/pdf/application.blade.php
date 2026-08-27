@@ -76,7 +76,17 @@
         </table>
     @endif
 
-    <div class="totals">{{ __('app.total_policy_premium') }}: {{ $application->total_policy_premium ? '$'.number_format($application->total_policy_premium, 2) : '—' }}</div>
+    <h2>{{ __('app.finance_proposal') }}</h2>
+    <table class="data kv">
+        <tr>
+            <td class="lbl">{{ __('app.down_payment') }}</td><td>{{ $application->down_payment ? '$'.number_format($application->down_payment, 2) : '—' }}</td>
+            <td class="lbl">{{ __('app.number_of_payments') }}</td><td>{{ $application->number_of_payments ?: '—' }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">{{ __('app.monthly_payment') }}</td><td>{{ $application->monthly_payment ? '$'.number_format($application->monthly_payment, 2) : '—' }}</td>
+            <td class="lbl">{{ __('app.total_policy_premium') }}</td><td><strong>{{ $application->total_policy_premium ? '$'.number_format($application->total_policy_premium, 2) : '—' }}</strong></td>
+        </tr>
+    </table>
 
     <h2>{{ __('app.agency') }}</h2>
     <table class="data kv">

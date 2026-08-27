@@ -49,6 +49,10 @@ return [
     'deductible' => 'Deductible',
     'premium' => 'Premium',
     'total_policy_premium' => 'Total Policy Premium',
+    'finance_proposal' => 'Finance Proposal',
+    'down_payment' => 'Down Payment',
+    'number_of_payments' => 'Number of Payments',
+    'monthly_payment' => 'Monthly Payment',
 
     'agency' => 'Agency',
     'agency_name' => 'Agency Name',

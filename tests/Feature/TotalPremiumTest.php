@@ -27,4 +27,20 @@ class TotalPremiumTest extends TestCase
         $app->coverages()->first()->delete();
         $this->assertNull($app->fresh()->total_policy_premium);
     }
+
+    public function test_monthly_payment_is_derived_from_the_plan(): void
+    {
+        $app = Application::create(['company_name' => 'Acme']);
+        $app->coverages()->create(['coverage' => 'Liability', 'premium' => 18119.50]);
+
+        // Reload so the summed total is on the instance the advisor edits.
+        $app = $app->fresh();
+        $app->update(['down_payment' => 4000, 'number_of_payments' => 10]);
+
+        $this->assertEquals(1411.95, $app->fresh()->monthly_payment);
+
+        // No plan -> no monthly payment.
+        $app->update(['number_of_payments' => null]);
+        $this->assertNull($app->fresh()->monthly_payment);
+    }
 }

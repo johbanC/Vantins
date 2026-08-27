@@ -49,6 +49,10 @@ return [
     'deductible' => 'Deducible',
     'premium' => 'Prima',
     'total_policy_premium' => 'Prima Total de la Póliza',
+    'finance_proposal' => 'Propuesta de Financiamiento',
+    'down_payment' => 'Pago Inicial',
+    'number_of_payments' => 'Número de Cuotas',
+    'monthly_payment' => 'Cuota Mensual',
 
     'agency' => 'Agencia',
     'agency_name' => 'Nombre de la Agencia',
