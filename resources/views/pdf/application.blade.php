@@ -29,7 +29,7 @@
 <body>
 <div class="wrap">
     <table class="head" width="100%"><tr>
-        <td><div class="brand">VANTINS</div><div class="tag">Smart Protection Starts Here</div></td>
+        <td><img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/brand/logo-dark.png'))) }}" style="height:40px"></td>
         <td class="contact">
             +1 (754) 290-0308 &nbsp;|&nbsp; support@vantins.com<br>
             28 W Flagler St Ste 300B #336 Miami, FL 33130 US<br>

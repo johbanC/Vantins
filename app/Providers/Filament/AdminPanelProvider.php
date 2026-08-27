@@ -29,6 +29,10 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('Vantins')
+            ->brandLogo(asset('images/brand/logo-dark.png'))
+            ->darkModeBrandLogo(asset('images/brand/logo-white.png'))
+            ->brandLogoHeight('1.9rem')
+            ->favicon(asset('images/brand/shield.png'))
             ->colors([
                 'primary' => Color::Amber,
             ])

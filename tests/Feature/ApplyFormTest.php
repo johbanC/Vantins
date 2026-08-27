@@ -16,7 +16,7 @@ class ApplyFormTest extends TestCase
     {
         $app = Application::create(['company_name' => 'Acme']);
 
-        $this->get("/apply/{$app->token}")->assertOk()->assertSee('VANTINS');
+        $this->get("/apply/{$app->token}")->assertOk()->assertSee('Applicant Information');
     }
 
     public function test_unknown_token_is_404(): void

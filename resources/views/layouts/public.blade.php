@@ -22,10 +22,8 @@
 <body class="min-h-full bg-navy-dark text-white antialiased">
     <header class="border-b border-white/10 bg-black/40">
         <div class="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
-            <div class="flex items-center gap-2 font-semibold tracking-wide">
-                <span class="inline-block h-6 w-6 rounded bg-brand"></span> VANTINS
-            </div>
-            <span class="text-xs uppercase tracking-widest text-white/50">Smart Protection Starts Here</span>
+            <img src="{{ asset('images/brand/logo-white.png') }}" alt="Vantins" class="h-8 w-auto">
+            <span class="hidden text-xs uppercase tracking-widest text-white/50 sm:inline">Smart Protection Starts Here</span>
         </div>
     </header>
 

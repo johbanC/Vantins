@@ -8,8 +8,8 @@
 </head>
 <body class="flex min-h-full items-center justify-center bg-[#071F3D] p-6 text-white">
     <div class="w-full max-w-md rounded-2xl border border-white/10 bg-black/30 p-8 text-center">
-        <div class="mb-4 flex items-center justify-center gap-2 font-semibold tracking-wide">
-            <span class="inline-block h-6 w-6 rounded bg-[#F59E0B]"></span> VANTINS
+        <div class="mb-4 flex justify-center">
+            <img src="{{ asset('images/brand/logo-white.png') }}" alt="Vantins" class="h-9 w-auto">
         </div>
 
         @if ($application)
