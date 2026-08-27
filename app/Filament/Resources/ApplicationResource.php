@@ -10,6 +10,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\HtmlString;
 
 class ApplicationResource extends Resource
 {
@@ -19,63 +21,97 @@ class ApplicationResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'company_name';
 
+    public static function getModelLabel(): string
+    {
+        return __('panel.resource.application');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('panel.resource.applications');
+    }
+
+    protected static function statusOptions(): array
+    {
+        return collect(Application::STATUSES)
+            ->mapWithKeys(fn ($s) => [$s => __('panel.status.'.$s)])
+            ->all();
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([
-            Forms\Components\Section::make('Estado / Status')
-                ->columns(3)
+            // Shown only when creating: the minimum to identify the application.
+            Forms\Components\Section::make(__('panel.section.client'))
+                ->description(__('panel.section.client_hint'))
+                ->columns(2)
+                ->visibleOn('create')
                 ->schema([
-                    Forms\Components\Select::make('status')
-                        ->options(collect(Application::STATUSES)->mapWithKeys(fn ($s) => [$s => ucfirst(str_replace('_', ' ', $s))]))
-                        ->required()
-                        ->native(false),
-                    Forms\Components\Select::make('locale')
-                        ->label('Idioma')
-                        ->options(['en' => 'English', 'es' => 'Español'])
-                        ->required()
-                        ->native(false),
-                    Forms\Components\TextInput::make('token')
-                        ->label('Client link token')
-                        ->disabled()
-                        ->dehydrated(false),
+                    Forms\Components\TextInput::make('company_name')
+                        ->label(__('panel.field.company_name'))
+                        ->maxLength(255),
+                    Forms\Components\TextInput::make('email')
+                        ->label(__('panel.field.email'))
+                        ->email()
+                        ->maxLength(255),
                 ]),
 
-            Forms\Components\Section::make('Applicant Information')
+            // Everything below is only relevant once the application exists.
+            Forms\Components\Section::make(__('panel.section.applicant'))
+                ->description(__('panel.section.schedules_hint'))
                 ->columns(2)
+                ->hiddenOn('create')
                 ->schema([
-                    Forms\Components\TextInput::make('company_name'),
-                    Forms\Components\TextInput::make('company_representative'),
-                    Forms\Components\TextInput::make('phone_number')->tel(),
-                    Forms\Components\TextInput::make('email')->email(),
-                    Forms\Components\TextInput::make('mailing_address'),
-                    Forms\Components\TextInput::make('parking_address'),
-                    Forms\Components\DatePicker::make('effective_date')->native(false),
-                    Forms\Components\TextInput::make('us_dot_number')->label('US DOT #'),
-                    Forms\Components\TextInput::make('radius_of_operations'),
-                    Forms\Components\TextInput::make('years_in_business'),
-                    Forms\Components\TextInput::make('power_units')->numeric(),
-                    Forms\Components\Textarea::make('commodities_hauled')->columnSpanFull(),
+                    Forms\Components\TextInput::make('company_name')->label(__('panel.field.company_name')),
+                    Forms\Components\TextInput::make('company_representative')->label(__('panel.field.company_representative')),
+                    Forms\Components\TextInput::make('phone_number')->label(__('panel.field.phone_number'))->tel(),
+                    Forms\Components\TextInput::make('email')->label(__('panel.field.email'))->email(),
+                    Forms\Components\TextInput::make('mailing_address')->label(__('panel.field.mailing_address')),
+                    Forms\Components\TextInput::make('parking_address')->label(__('panel.field.parking_address')),
+                    Forms\Components\DatePicker::make('effective_date')->label(__('panel.field.effective_date'))->native(false),
+                    Forms\Components\TextInput::make('us_dot_number')->label(__('panel.field.us_dot_number')),
+                    Forms\Components\TextInput::make('radius_of_operations')->label(__('panel.field.radius_of_operations')),
+                    Forms\Components\TextInput::make('years_in_business')->label(__('panel.field.years_in_business')),
+                    Forms\Components\TextInput::make('power_units')->label(__('panel.field.power_units'))->numeric(),
+                    Forms\Components\Textarea::make('commodities_hauled')->label(__('panel.field.commodities_hauled'))->columnSpanFull(),
                 ]),
 
-            Forms\Components\Section::make('Finance Proposal & Agency')
+            Forms\Components\Section::make(__('panel.section.finance_agency'))
                 ->columns(2)
+                ->hiddenOn('create')
                 ->schema([
-                    Forms\Components\TextInput::make('total_policy_premium')->numeric()->prefix('$'),
-                    Forms\Components\TextInput::make('agency_name'),
-                    Forms\Components\TextInput::make('agency_phone')->tel(),
-                    Forms\Components\TextInput::make('contact_agent_name'),
+                    Forms\Components\TextInput::make('total_policy_premium')->label(__('panel.field.total_policy_premium'))->numeric()->prefix('$'),
+                    Forms\Components\TextInput::make('agency_name')->label(__('panel.field.agency_name')),
+                    Forms\Components\TextInput::make('agency_phone')->label(__('panel.field.agency_phone'))->tel(),
+                    Forms\Components\TextInput::make('contact_agent_name')->label(__('panel.field.contact_agent_name')),
                 ]),
 
-            Forms\Components\Section::make('Disclosure & Signature')
+            Forms\Components\Section::make(__('panel.section.disclosure'))
+                ->description(__('panel.section.disclosure_hint'))
                 ->columns(2)
+                ->hiddenOn('create')
                 ->schema([
-                    Forms\Components\TextInput::make('signer_name'),
-                    Forms\Components\DateTimePicker::make('disclosure_accepted_at')->native(false),
-                    Forms\Components\FileUpload::make('signature_path')
-                        ->image()
-                        ->directory('signatures')
-                        ->disk('public')
-                        ->columnSpanFull(),
+                    Forms\Components\Placeholder::make('signer_name')
+                        ->label(__('panel.field.signer_name'))
+                        ->content(fn (?Application $record) => $record?->signer_name ?: '—'),
+                    Forms\Components\Placeholder::make('disclosure_accepted_at')
+                        ->label(__('panel.field.disclosure_accepted_at'))
+                        ->content(fn (?Application $record) => optional($record?->disclosure_accepted_at)?->format('Y-m-d H:i') ?: '—'),
+                    Forms\Components\Placeholder::make('signature')
+                        ->label(__('panel.field.signature'))
+                        ->columnSpanFull()
+                        ->content(function (?Application $record) {
+                            if ($record?->signature_path && Storage::disk('public')->exists($record->signature_path)) {
+                                return new HtmlString('<img src="'.Storage::disk('public')->url($record->signature_path).'" style="max-height:8rem" class="rounded border border-gray-300 bg-white p-1">');
+                            }
+
+                            return __('panel.field.not_signed');
+                        }),
+                    Forms\Components\Placeholder::make('locale')
+                        ->label(__('panel.field.locale'))
+                        ->content(fn (?Application $record) => match ($record?->locale) {
+                            'es' => 'Español', 'en' => 'English', default => '—',
+                        }),
                 ]),
         ]);
     }
@@ -85,51 +121,62 @@ class ApplicationResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('company_name')
-                    ->label('Company')
+                    ->label(__('panel.field.company_name'))
                     ->searchable()
                     ->sortable()
                     ->description(fn (Application $r) => $r->company_representative),
                 Tables\Columns\TextColumn::make('status')
+                    ->label(__('panel.status.label'))
                     ->badge()
-                    ->formatStateUsing(fn (string $state) => ucfirst(str_replace('_', ' ', $state)))
+                    ->formatStateUsing(fn (string $state) => __('panel.status.'.$state))
                     ->color(fn (string $state) => match ($state) {
                         'draft' => 'gray',
                         'submitted' => 'info',
                         'in_review' => 'warning',
                         'quoted' => 'primary',
-                        'signed' => 'success',
-                        'issued' => 'success',
+                        'signed', 'issued' => 'success',
                         default => 'gray',
                     })
                     ->sortable(),
-                Tables\Columns\TextColumn::make('locale')->label('Lang')->badge(),
-                Tables\Columns\TextColumn::make('creator.name')->label('Created by')->toggleable(),
-                Tables\Columns\TextColumn::make('email')->searchable()->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('us_dot_number')->label('US DOT')->searchable()->toggleable(),
-                Tables\Columns\TextColumn::make('total_policy_premium')->money('USD')->sortable()->toggleable(),
-                Tables\Columns\TextColumn::make('submitted_at')->dateTime()->sortable()->toggleable(),
-                Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('creator.name')->label(__('panel.field.created_by'))->toggleable(),
+                Tables\Columns\TextColumn::make('email')->label(__('panel.field.email'))->searchable()->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('us_dot_number')->label(__('panel.field.us_dot_number'))->searchable()->toggleable(),
+                Tables\Columns\TextColumn::make('total_policy_premium')->label(__('panel.field.total_policy_premium'))->money('USD')->sortable()->toggleable(),
+                Tables\Columns\TextColumn::make('submitted_at')->label(__('panel.field.submitted_at'))->dateTime()->sortable()->toggleable(),
+                Tables\Columns\TextColumn::make('created_at')->label(__('panel.field.created_at'))->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->options(collect(Application::STATUSES)->mapWithKeys(fn ($s) => [$s => ucfirst(str_replace('_', ' ', $s))])),
-                Tables\Filters\SelectFilter::make('locale')
-                    ->options(['en' => 'English', 'es' => 'Español']),
+                    ->label(__('panel.status.label'))
+                    ->options(static::statusOptions()),
             ])
             ->actions([
+                Tables\Actions\Action::make('changeStatus')
+                    ->label(__('panel.action.change_status'))
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('gray')
+                    ->form([
+                        Forms\Components\Select::make('status')
+                            ->label(__('panel.status.label'))
+                            ->options(static::statusOptions())
+                            ->default(fn (Application $record) => $record->status)
+                            ->required()
+                            ->native(false),
+                    ])
+                    ->action(fn (Application $record, array $data) => $record->markStatus($data['status'])),
                 Tables\Actions\Action::make('copyLink')
-                    ->label('Client link')
+                    ->label(__('panel.action.client_link'))
                     ->icon('heroicon-o-link')
                     ->color('gray')
-                    ->modalHeading('Link para el cliente')
+                    ->modalHeading(__('panel.action.client_link_heading'))
                     ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Cerrar')
+                    ->modalCancelActionLabel(__('filament-actions::modal.actions.cancel.label'))
                     ->modalContent(fn (Application $record) => view('filament.application-link', [
                         'url' => route('apply.show', $record->token),
                     ])),
                 Tables\Actions\Action::make('pdf')
-                    ->label('PDF')
+                    ->label(__('panel.action.pdf'))
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('primary')
                     ->url(fn (Application $record) => route('applications.pdf', $record->token))

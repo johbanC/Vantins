@@ -7,6 +7,16 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect('/admin'));
 
+// Staff panel UI language preference.
+Route::get('/panel/locale/{locale}', function (string $locale) {
+    abort_unless(in_array($locale, ['en', 'es'], true), 404);
+    if ($user = auth()->user()) {
+        $user->forceFill(['locale' => $locale])->save();
+    }
+
+    return back();
+})->middleware('auth')->name('panel.locale');
+
 // Client-facing application form (tokenised link, no auth).
 Route::get('/apply/{token}', ApplyForm::class)->name('apply.show');
 

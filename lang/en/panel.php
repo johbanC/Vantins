@@ -1,0 +1,72 @@
+<?php
+
+return [
+    'resource' => [
+        'application' => 'Application',
+        'applications' => 'Applications',
+        'user' => 'User',
+        'users' => 'Users',
+    ],
+
+    'stats' => [
+        'total' => 'Total applications',
+    ],
+
+    'status' => [
+        'label' => 'Status',
+        'draft' => 'Draft (not sent)',
+        'submitted' => 'Submitted',
+        'in_review' => 'In review',
+        'quoted' => 'Quoted',
+        'signed' => 'Signed',
+        'issued' => 'Issued',
+    ],
+
+    'section' => [
+        'client' => 'Client',
+        'client_hint' => 'Just enough to identify this application. The client fills the rest through their link.',
+        'applicant' => 'Applicant Information',
+        'schedules_hint' => 'Drivers, vehicles, trailers and coverages are managed in the tabs below once the application exists.',
+        'finance_agency' => 'Finance & Agency',
+        'disclosure' => 'Disclosure & Signature',
+        'disclosure_hint' => 'Completed by the client when they submit. Read-only here.',
+    ],
+
+    'field' => [
+        'company_name' => 'Company name',
+        'company_representative' => 'Company representative',
+        'phone_number' => 'Phone number',
+        'email' => 'Client email',
+        'mailing_address' => 'Mailing address',
+        'parking_address' => 'Parking address',
+        'effective_date' => 'Effective date',
+        'us_dot_number' => 'US DOT #',
+        'radius_of_operations' => 'Radius of operations',
+        'years_in_business' => 'Years in business',
+        'power_units' => 'Power units',
+        'commodities_hauled' => 'Commodities hauled',
+        'total_policy_premium' => 'Total policy premium',
+        'agency_name' => 'Agency name',
+        'agency_phone' => 'Agency phone',
+        'contact_agent_name' => 'Contact agent name',
+        'signer_name' => 'Signer name',
+        'disclosure_accepted_at' => 'Disclosure accepted at',
+        'signature' => 'Signature',
+        'locale' => 'Client language',
+        'created_by' => 'Created by',
+        'created_at' => 'Created',
+        'submitted_at' => 'Submitted',
+        'not_signed' => 'Not signed yet',
+    ],
+
+    'action' => [
+        'client_link' => 'Client link',
+        'client_link_heading' => 'Link for the client',
+        'share_hint' => 'Share this link with the client so they can fill the application from any device.',
+        'open_new_tab' => 'Open in a new tab',
+        'copy' => 'Copy',
+        'copied' => 'Copied!',
+        'pdf' => 'PDF',
+        'change_status' => 'Change status',
+    ],
+];

@@ -45,11 +45,6 @@ class Application extends Model
         });
     }
 
-    public function getRouteKeyName(): string
-    {
-        return 'token';
-    }
-
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
