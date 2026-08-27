@@ -166,7 +166,7 @@ class ApplyForm extends Component
             'disclosure_accepted_at' => now(),
         ])->save();
 
-        $this->application->markStatus('submitted');
+        $this->application->markStatus('signed');
 
         $this->step = $this->totalSteps + 1; // thank-you screen
     }

@@ -132,11 +132,11 @@ class ApplicationResource extends Resource
                     ->badge()
                     ->formatStateUsing(fn (string $state) => __('panel.status.'.$state))
                     ->color(fn (string $state) => match ($state) {
-                        'draft' => 'gray',
-                        'submitted' => 'info',
+                        'created' => 'gray',
+                        'signed' => 'info',
                         'in_review' => 'warning',
                         'quoted' => 'primary',
-                        'signed', 'issued' => 'success',
+                        'issued' => 'success',
                         default => 'gray',
                     })
                     ->sortable(),
@@ -144,7 +144,7 @@ class ApplicationResource extends Resource
                 Tables\Columns\TextColumn::make('email')->label(__('panel.field.email'))->searchable()->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('us_dot_number')->label(__('panel.field.us_dot_number'))->searchable()->toggleable(),
                 Tables\Columns\TextColumn::make('total_policy_premium')->label(__('panel.field.total_policy_premium'))->money('USD')->sortable()->toggleable(),
-                Tables\Columns\TextColumn::make('submitted_at')->label(__('panel.field.submitted_at'))->dateTime()->sortable()->toggleable(),
+                Tables\Columns\TextColumn::make('signed_at')->label(__('panel.field.signed_at'))->dateTime()->sortable()->toggleable(),
                 Tables\Columns\TextColumn::make('created_at')->label(__('panel.field.created_at'))->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
@@ -154,6 +154,13 @@ class ApplicationResource extends Resource
                     ->options(static::statusOptions()),
             ])
             ->actions([
+                Tables\Actions\Action::make('fill')
+                    ->label(__('panel.action.fill'))
+                    ->tooltip(__('panel.action.fill_tooltip'))
+                    ->icon('heroicon-o-pencil-square')
+                    ->color('warning')
+                    ->url(fn (Application $record) => route('apply.show', $record->token))
+                    ->openUrlInNewTab(),
                 Tables\Actions\Action::make('changeStatus')
                     ->label(__('panel.action.change_status'))
                     ->icon('heroicon-o-arrow-path')

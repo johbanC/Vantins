@@ -20,14 +20,14 @@ class ApplicationStats extends BaseWidget
         return [
             Stat::make(__('panel.stats.total'), Application::count())
                 ->color('primary'),
-            Stat::make($label('submitted'), $counts['submitted'] ?? 0)
+            Stat::make($label('created'), $counts['created'] ?? 0)
+                ->color('gray'),
+            Stat::make($label('signed'), $counts['signed'] ?? 0)
                 ->color('info'),
             Stat::make($label('in_review'), $counts['in_review'] ?? 0)
                 ->color('warning'),
             Stat::make($label('quoted'), $counts['quoted'] ?? 0)
                 ->color('primary'),
-            Stat::make($label('signed'), $counts['signed'] ?? 0)
-                ->color('success'),
             Stat::make($label('issued'), $counts['issued'] ?? 0)
                 ->color('success'),
         ];

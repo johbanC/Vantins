@@ -15,6 +15,13 @@ class EditApplication extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('fill')
+                ->label(__('panel.action.fill'))
+                ->tooltip(__('panel.action.fill_tooltip'))
+                ->icon('heroicon-o-pencil-square')
+                ->color('warning')
+                ->url(fn () => route('apply.show', $this->record->token))
+                ->openUrlInNewTab(),
             Actions\Action::make('changeStatus')
                 ->label(__('panel.action.change_status'))
                 ->icon('heroicon-o-arrow-path')

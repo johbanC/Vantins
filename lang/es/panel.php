@@ -14,11 +14,10 @@ return [
 
     'status' => [
         'label' => 'Estatus',
-        'draft' => 'Borrador (sin enviar)',
-        'submitted' => 'Enviada',
+        'created' => 'Creada',
+        'signed' => 'Firmada',
         'in_review' => 'En revisión',
         'quoted' => 'Cotizada',
-        'signed' => 'Firmada',
         'issued' => 'Emitida',
     ],
 
@@ -55,7 +54,7 @@ return [
         'locale' => 'Idioma del cliente',
         'created_by' => 'Creada por',
         'created_at' => 'Creada',
-        'submitted_at' => 'Enviada',
+        'signed_at' => 'Firmada',
         'not_signed' => 'Aún sin firmar',
     ],
 
@@ -68,5 +67,7 @@ return [
         'copied' => '¡Copiado!',
         'pdf' => 'PDF',
         'change_status' => 'Cambiar estatus',
+        'fill' => 'Llenar',
+        'fill_tooltip' => 'Abre el formulario del cliente para llenarlo junto con él',
     ],
 ];

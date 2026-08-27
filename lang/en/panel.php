@@ -14,11 +14,10 @@ return [
 
     'status' => [
         'label' => 'Status',
-        'draft' => 'Draft (not sent)',
-        'submitted' => 'Submitted',
+        'created' => 'Created',
+        'signed' => 'Signed',
         'in_review' => 'In review',
         'quoted' => 'Quoted',
-        'signed' => 'Signed',
         'issued' => 'Issued',
     ],
 
@@ -55,7 +54,7 @@ return [
         'locale' => 'Client language',
         'created_by' => 'Created by',
         'created_at' => 'Created',
-        'submitted_at' => 'Submitted',
+        'signed_at' => 'Signed',
         'not_signed' => 'Not signed yet',
     ],
 
@@ -68,5 +67,7 @@ return [
         'copied' => 'Copied!',
         'pdf' => 'PDF',
         'change_status' => 'Change status',
+        'fill' => 'Fill',
+        'fill_tooltip' => 'Open the client form to fill it in together with the client',
     ],
 ];

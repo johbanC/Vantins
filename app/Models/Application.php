@@ -13,12 +13,11 @@ class Application extends Model
     use HasFactory;
 
     public const STATUSES = [
-        'draft',
-        'submitted',
-        'in_review',
-        'quoted',
-        'signed',
-        'issued',
+        'created',    // auto: application created, link ready to send
+        'signed',     // auto: client finished the form and signed
+        'in_review',  // manual
+        'quoted',     // manual
+        'issued',     // manual
     ];
 
     protected $guarded = ['id'];
@@ -41,7 +40,7 @@ class Application extends Model
             $application->token ??= (string) Str::uuid();
             $application->verification_code ??= strtoupper(Str::random(10));
             $application->locale ??= 'en';
-            $application->status ??= 'draft';
+            $application->status ??= 'created';
         });
     }
 
@@ -76,10 +75,9 @@ class Application extends Model
         abort_unless(in_array($status, self::STATUSES, true), 422);
 
         $column = match ($status) {
-            'submitted' => 'submitted_at',
+            'signed' => 'signed_at',
             'in_review' => 'in_review_at',
             'quoted' => 'quoted_at',
-            'signed' => 'signed_at',
             'issued' => 'issued_at',
             default => null,
         };
