@@ -24,6 +24,16 @@ class ApplyFormTest extends TestCase
         $this->get('/apply/not-a-real-token')->assertNotFound();
     }
 
+    public function test_client_form_has_five_steps_and_no_coverages(): void
+    {
+        $app = Application::create(['company_name' => 'Acme']);
+
+        Livewire::test(ApplyForm::class, ['token' => $app->token])
+            ->assertSet('totalSteps', 5)
+            ->assertDontSee(__('app.coverages_list'))
+            ->assertDontSee(__('app.agency'));
+    }
+
     public function test_oversized_row_values_are_truncated_not_500(): void
     {
         $app = Application::create(['company_name' => 'Acme']);

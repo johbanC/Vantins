@@ -86,9 +86,13 @@ class ApplicationResource extends Resource
                         ->disabled()
                         ->dehydrated(false)
                         ->helperText(__('panel.field.total_policy_premium_hint')),
-                    Forms\Components\TextInput::make('agency_name')->label(__('panel.field.agency_name')),
-                    Forms\Components\TextInput::make('agency_phone')->label(__('panel.field.agency_phone'))->tel(),
                     Forms\Components\TextInput::make('contact_agent_name')->label(__('panel.field.contact_agent_name')),
+                    Forms\Components\TextInput::make('agency_name')
+                        ->label(__('panel.field.agency_name'))
+                        ->disabled()->dehydrated(false),
+                    Forms\Components\TextInput::make('agency_phone')
+                        ->label(__('panel.field.agency_phone'))
+                        ->disabled()->dehydrated(false),
                 ]),
 
             Forms\Components\Section::make(__('panel.section.disclosure'))

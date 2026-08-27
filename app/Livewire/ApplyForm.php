@@ -15,27 +15,26 @@ class ApplyForm extends Component
 
     public int $step = 1;
 
-    public int $totalSteps = 7;
+    public int $totalSteps = 5;
 
     /** Flat attribute bag for the single-row sections. */
     public array $form = [];
 
-    /** Repeatable rows. */
+    /** Repeatable rows filled by the client. */
     public array $drivers = [];
     public array $vehicles = [];
     public array $trailers = [];
-    public array $coverages = [];
 
     public bool $disclosureAccepted = false;
     public string $signerName = '';
     public ?string $signatureData = null; // base64 PNG data URL from signature pad
 
-    // total_policy_premium is derived from the coverage premiums, never typed here.
+    // The client only provides applicant information. Coverages, Agency and
+    // the Finance Proposal are filled by the advisor in the panel.
     protected array $singleFields = [
         'company_name', 'company_representative', 'phone_number', 'email',
         'mailing_address', 'parking_address', 'effective_date', 'us_dot_number',
         'radius_of_operations', 'years_in_business', 'power_units', 'commodities_hauled',
-        'agency_name', 'agency_phone', 'contact_agent_name',
     ];
 
     public function mount(string $token): void
@@ -59,9 +58,6 @@ class ApplyForm extends Component
         ]))->toArray();
         $this->trailers = $this->application->trailers->map(fn ($t) => $t->only([
             'year', 'make', 'vin', 'body_type', 'stated_value',
-        ]))->toArray();
-        $this->coverages = $this->application->coverages->map(fn ($c) => $c->only([
-            'coverage', 'limit_amount', 'deductible', 'premium',
         ]))->toArray();
 
         $this->signerName = $this->application->signer_name ?? '';
@@ -99,18 +95,13 @@ class ApplyForm extends Component
         $this->syncRows('drivers', ['driver_name', 'dob', 'cdl_number', 'state_issued', 'experience', 'date_of_hire']);
         $this->syncRows('vehicles', ['year', 'make', 'vin', 'body_type', 'stated_value']);
         $this->syncRows('trailers', ['year', 'make', 'vin', 'body_type', 'stated_value']);
-        $this->syncRows('coverages', ['coverage', 'limit_amount', 'deductible', 'premium']);
-
-        // Mass-delete in syncRows skips model events, so recompute explicitly.
-        $this->application->recalculatePremium();
-        $this->application->refresh();
     }
 
     /** Column length caps so oversized input can never break the insert. */
     protected const MAX_LENGTHS = [
         'year' => 20, 'vin' => 64, 'make' => 190, 'body_type' => 190,
         'state_issued' => 40, 'experience' => 60, 'cdl_number' => 190,
-        'driver_name' => 190, 'coverage' => 190, 'limit_amount' => 190, 'deductible' => 190,
+        'driver_name' => 190,
     ];
 
     protected function syncRows(string $relation, array $fields): void

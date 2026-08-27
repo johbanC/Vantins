@@ -85,44 +85,6 @@
         @endforeach
 
         @if ($step === 5)
-            <h2 class="mb-5 text-lg font-semibold">{{ __('app.coverages_list') }}</h2>
-            <div class="space-y-4">
-                @forelse ($coverages as $i => $row)
-                    <div class="rounded-xl border border-white/10 bg-white/5 p-4">
-                        <div class="mb-3 flex items-center justify-between">
-                            <span class="text-xs text-white/50">#{{ $i + 1 }}</span>
-                            <button wire:click="removeRow('coverages', {{ $i }})" class="text-xs text-red-300 hover:text-red-200">{{ __('app.remove') }}</button>
-                        </div>
-                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-4">
-                            <div><label class="{{ $label }}">{{ __('app.coverage') }}</label><input wire:model="coverages.{{ $i }}.coverage" class="{{ $input }}"></div>
-                            <div><label class="{{ $label }}">{{ __('app.limit') }}</label><input wire:model="coverages.{{ $i }}.limit_amount" class="{{ $input }}"></div>
-                            <div><label class="{{ $label }}">{{ __('app.deductible') }}</label><input wire:model="coverages.{{ $i }}.deductible" class="{{ $input }}"></div>
-                            <div><label class="{{ $label }}">{{ __('app.premium') }}</label><input type="number" wire:model="coverages.{{ $i }}.premium" class="{{ $input }}"></div>
-                        </div>
-                    </div>
-                @empty
-                    <p class="text-sm text-white/40">{{ __('app.none_yet') }}</p>
-                @endforelse
-                <button wire:click="addRow('coverages')" class="{{ $btnGhost }}">+ {{ __('app.add') }}</button>
-
-                @php $premiumTotal = collect($coverages)->sum(fn ($r) => (float) ($r['premium'] ?? 0)); @endphp
-                <div class="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
-                    <span class="{{ $label }} mb-0">{{ __('app.total_policy_premium') }}</span>
-                    <span class="text-lg font-semibold text-brand">${{ number_format($premiumTotal, 2) }}</span>
-                </div>
-            </div>
-        @endif
-
-        @if ($step === 6)
-            <h2 class="mb-5 text-lg font-semibold">{{ __('app.agency') }}</h2>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div><label class="{{ $label }}">{{ __('app.agency_name') }}</label><input wire:model="form.agency_name" class="{{ $input }}"></div>
-                <div><label class="{{ $label }}">{{ __('app.agency_phone') }}</label><input wire:model="form.agency_phone" class="{{ $input }}"></div>
-                <div><label class="{{ $label }}">{{ __('app.contact_agent_name') }}</label><input wire:model="form.contact_agent_name" class="{{ $input }}"></div>
-            </div>
-        @endif
-
-        @if ($step === 7)
             <h2 class="mb-5 text-lg font-semibold">{{ __('app.disclosure') }}</h2>
             <p class="mb-4 text-sm leading-relaxed text-white/70">{{ __('app.disclosure_body') }}</p>
 

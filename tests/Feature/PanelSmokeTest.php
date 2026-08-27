@@ -44,6 +44,24 @@ class PanelSmokeTest extends TestCase
         $app->forceDelete();
     }
 
+    public function test_create_fills_agency_from_config_and_current_user(): void
+    {
+        $user = $this->staff();
+
+        \Livewire\Livewire::actingAs($user)
+            ->test(\App\Filament\Resources\ApplicationResource\Pages\CreateApplication::class)
+            ->fillForm(['company_name' => 'Acme Freight', 'email' => 'ops@acme.test'])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $app = Application::where('company_name', 'Acme Freight')->firstOrFail();
+
+        $this->assertSame(config('vantins.agency_name'), $app->agency_name);
+        $this->assertSame(config('vantins.agency_phone'), $app->agency_phone);
+        $this->assertSame($user->name, $app->contact_agent_name);
+        $this->assertSame('created', $app->status);
+    }
+
     public function test_locale_switch_route(): void
     {
         $user = $this->staff();
