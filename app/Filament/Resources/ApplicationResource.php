@@ -102,7 +102,9 @@ class ApplicationResource extends Resource
                         ->columnSpanFull()
                         ->content(function (?Application $record) {
                             if ($record?->signature_path && Storage::disk('public')->exists($record->signature_path)) {
-                                return new HtmlString('<img src="'.Storage::disk('public')->url($record->signature_path).'" style="max-height:8rem" class="rounded border border-gray-300 bg-white p-1">');
+                                $data = base64_encode(Storage::disk('public')->get($record->signature_path));
+
+                                return new HtmlString('<img src="data:image/png;base64,'.$data.'" style="max-height:8rem" class="rounded border border-gray-300 bg-white p-1">');
                             }
 
                             return __('panel.field.not_signed');
