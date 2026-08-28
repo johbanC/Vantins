@@ -1,15 +1,26 @@
-<div class="space-y-3">
+<div class="flex flex-col gap-4">
     <p class="text-sm text-gray-500 dark:text-gray-400">
         {{ __('panel.action.pdf_hint') }}
     </p>
-    <div class="flex flex-col gap-2 sm:flex-row">
-        <a href="{{ $es }}" target="_blank"
-           class="flex-1 rounded-lg bg-amber-500 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-amber-600">
+
+    <div class="flex flex-wrap gap-3">
+        <x-filament::button
+            tag="a"
+            :href="$es"
+            target="_blank"
+            icon="heroicon-o-document-arrow-down"
+        >
             {{ __('panel.action.pdf_es') }}
-        </a>
-        <a href="{{ $en }}" target="_blank"
-           class="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800">
+        </x-filament::button>
+
+        <x-filament::button
+            tag="a"
+            :href="$en"
+            target="_blank"
+            color="gray"
+            icon="heroicon-o-document-arrow-down"
+        >
             {{ __('panel.action.pdf_en') }}
-        </a>
+        </x-filament::button>
     </div>
 </div>
