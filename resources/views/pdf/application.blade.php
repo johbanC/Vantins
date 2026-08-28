@@ -69,9 +69,9 @@
     @if ($application->coverages->count())
         <h2>{{ __('app.coverages_list') }}</h2>
         <table class="data">
-            <tr><th>{{ __('app.coverage') }}</th><th>{{ __('app.limit') }}</th><th>{{ __('app.deductible') }}</th><th>{{ __('app.premium') }}</th></tr>
+            <tr><th>{{ __('app.coverage') }}</th><th>{{ __('app.limit') }}</th><th>{{ __('app.deductible') }}</th></tr>
             @foreach ($application->coverages as $c)
-                <tr><td>{{ $c->coverage }}</td><td>{{ $c->limit_amount }}</td><td>{{ $c->deductible }}</td><td>{{ $c->premium ? '$'.number_format($c->premium, 2) : '' }}</td></tr>
+                <tr><td>{{ $c->coverage }}</td><td>{{ $c->limit_amount }}</td><td>{{ $c->deductible }}</td></tr>
             @endforeach
         </table>
     @endif

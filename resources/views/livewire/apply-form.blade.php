@@ -125,11 +125,10 @@
                                 <span class="text-xs text-white/50">#{{ $i + 1 }}</span>
                                 <button wire:click="removeRow('coverages', {{ $i }})" class="text-xs text-red-300 hover:text-red-200">{{ __('app.remove') }}</button>
                             </div>
-                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-4">
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                                 <div><label class="{{ $label }}">{{ __('app.coverage') }}</label><input wire:model="coverages.{{ $i }}.coverage" class="{{ $input }}"></div>
                                 <div><label class="{{ $label }}">{{ __('app.limit') }}</label><input wire:model="coverages.{{ $i }}.limit_amount" class="{{ $input }}"></div>
                                 <div><label class="{{ $label }}">{{ __('app.deductible') }}</label><input wire:model="coverages.{{ $i }}.deductible" class="{{ $input }}"></div>
-                                <div><label class="{{ $label }}">{{ __('app.premium') }}</label><input type="number" wire:model="coverages.{{ $i }}.premium" class="{{ $input }}"></div>
                             </div>
                         </div>
                     @empty

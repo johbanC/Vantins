@@ -68,7 +68,7 @@ class ApplyForm extends Component
         $this->drivers = $this->application->drivers->map->only(['driver_name', 'dob', 'cdl_number', 'state_issued', 'experience', 'date_of_hire'])->toArray();
         $this->vehicles = $this->application->vehicles->map->only(['year', 'make', 'vin', 'body_type', 'stated_value'])->toArray();
         $this->trailers = $this->application->trailers->map->only(['year', 'make', 'vin', 'body_type', 'stated_value'])->toArray();
-        $this->coverages = $this->application->coverages->map->only(['coverage', 'limit_amount', 'deductible', 'premium'])->toArray();
+        $this->coverages = $this->application->coverages->map->only(['coverage', 'limit_amount', 'deductible'])->toArray();
 
         $this->signerName = $this->application->signer_name ?? '';
     }
@@ -108,7 +108,7 @@ class ApplyForm extends Component
         $this->syncRows('drivers', ['driver_name', 'dob', 'cdl_number', 'state_issued', 'experience', 'date_of_hire']);
         $this->syncRows('vehicles', ['year', 'make', 'vin', 'body_type', 'stated_value']);
         $this->syncRows('trailers', ['year', 'make', 'vin', 'body_type', 'stated_value']);
-        $this->syncRows('coverages', ['coverage', 'limit_amount', 'deductible', 'premium']);
+        $this->syncRows('coverages', ['coverage', 'limit_amount', 'deductible']);
 
         $this->application->refresh();
     }
