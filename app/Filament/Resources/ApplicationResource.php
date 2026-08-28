@@ -84,21 +84,27 @@ class ApplicationResource extends Resource
                     Forms\Components\TextInput::make('down_payment')
                         ->label(__('panel.field.down_payment'))
                         ->prefix('$')
-                        ->numeric(),
+                        ->numeric()
+                        ->live(onBlur: true),
                     Forms\Components\TextInput::make('number_of_payments')
                         ->label(__('panel.field.number_of_payments'))
                         ->numeric()
-                        ->minValue(1),
+                        ->minValue(1)
+                        ->live(onBlur: true),
                     Forms\Components\TextInput::make('monthly_payment')
                         ->label(__('panel.field.monthly_payment'))
                         ->prefix('$')
-                        ->numeric(),
-                    Forms\Components\TextInput::make('total_policy_premium')
+                        ->numeric()
+                        ->live(onBlur: true),
+                    Forms\Components\Placeholder::make('total_policy_premium_display')
                         ->label(__('panel.field.total_policy_premium'))
-                        ->prefix('$')
-                        ->disabled()
-                        ->dehydrated(false)
-                        ->helperText(__('panel.field.total_policy_premium_hint')),
+                        ->helperText(__('panel.field.total_policy_premium_hint'))
+                        ->content(function (Forms\Get $get): string {
+                            $total = (float) $get('down_payment')
+                                + (float) $get('monthly_payment') * (int) $get('number_of_payments');
+
+                            return $total > 0 ? '$'.number_format($total, 2) : '—';
+                        }),
                 ]),
 
             Forms\Components\Section::make(__('panel.section.agency'))

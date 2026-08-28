@@ -62,6 +62,23 @@ class PanelSmokeTest extends TestCase
         $this->assertSame('created', $app->status);
     }
 
+    public function test_saving_the_edit_form_derives_the_total_premium(): void
+    {
+        $app = Application::create(['company_name' => 'Acme']);
+
+        \Livewire\Livewire::actingAs($this->staff())
+            ->test(\App\Filament\Resources\ApplicationResource\Pages\EditApplication::class, ['record' => $app->getKey()])
+            ->fillForm([
+                'down_payment' => 4000,
+                'number_of_payments' => 10,
+                'monthly_payment' => 1411.95,
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertEquals(18119.50, $app->fresh()->total_policy_premium);
+    }
+
     public function test_pdf_is_available_in_both_languages(): void
     {
         $app = Application::create(['company_name' => 'Acme', 'locale' => 'es']);
