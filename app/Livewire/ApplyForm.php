@@ -57,7 +57,7 @@ class ApplyForm extends Component
 
         App::setLocale($this->application->locale);
 
-        $this->locked = in_array($this->application->status, ['signed', 'issued'], true);
+        $this->locked = $this->application->isLocked();
         $this->editable = auth()->check() && ! $this->locked;
 
         foreach ($this->singleFields as $field) {

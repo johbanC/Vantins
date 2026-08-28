@@ -49,7 +49,8 @@ class EditApplication extends EditRecord
                     $this->record->markStatus($data['status']);
                     $this->refreshFormData(['status']);
                 }),
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+                ->hidden(fn () => $this->record->isLocked()),
         ];
     }
 }

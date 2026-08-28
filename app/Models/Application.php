@@ -20,6 +20,9 @@ class Application extends Model
         'issued',     // manual
     ];
 
+    /** Signed / issued: read-only, cannot be edited by the client nor deleted. */
+    public const LOCKED_STATUSES = ['signed', 'issued'];
+
     protected $guarded = ['id'];
 
     protected $casts = [
@@ -48,6 +51,14 @@ class Application extends Model
 
         // Total Policy Premium is derived from the payment plan the advisor enters.
         static::saving(fn (Application $application) => $application->applyPaymentPlan());
+
+        // A signed / issued document can never be deleted.
+        static::deleting(fn (Application $application) => ! $application->isLocked());
+    }
+
+    public function isLocked(): bool
+    {
+        return in_array($this->status, self::LOCKED_STATUSES, true);
     }
 
     /** Total Policy Premium = Down Payment + (Monthly Payment x Number of Payments). */
