@@ -20,8 +20,9 @@ Route::get('/panel/locale/{locale}', function (string $locale) {
 // Client-facing application form (tokenised link, no auth).
 Route::get('/apply/{token}', ApplyForm::class)->name('apply.show');
 
-// Branded PDF of an application (staff share this / QR points at verify).
-Route::get('/applications/{token}/pdf', [ApplicationPdfController::class, 'show'])
+// Branded PDF of an application, in either language (staff share this).
+Route::get('/applications/{token}/pdf/{locale?}', [ApplicationPdfController::class, 'show'])
+    ->whereIn('locale', ['en', 'es'])
     ->name('applications.pdf');
 
 // Public document verification (QR target).

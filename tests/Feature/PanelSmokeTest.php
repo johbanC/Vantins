@@ -62,6 +62,21 @@ class PanelSmokeTest extends TestCase
         $this->assertSame('created', $app->status);
     }
 
+    public function test_pdf_is_available_in_both_languages(): void
+    {
+        $app = Application::create(['company_name' => 'Acme', 'locale' => 'es']);
+        $app->coverages()->create(['coverage' => 'Liability', 'premium' => 1000]);
+
+        foreach (['en', 'es', null] as $locale) {
+            $url = '/applications/'.$app->token.'/pdf'.($locale ? "/{$locale}" : '');
+            $this->get($url)
+                ->assertOk()
+                ->assertHeader('content-type', 'application/pdf');
+        }
+
+        $this->get('/applications/'.$app->token.'/pdf/fr')->assertNotFound();
+    }
+
     public function test_locale_switch_route(): void
     {
         $user = $this->staff();

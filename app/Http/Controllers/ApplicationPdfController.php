@@ -11,13 +11,15 @@ use Illuminate\Support\Facades\Storage;
 
 class ApplicationPdfController extends Controller
 {
-    public function show(string $token)
+    public function show(string $token, ?string $locale = null)
     {
         $application = Application::with(['drivers', 'vehicles', 'trailers', 'coverages'])
             ->where('token', $token)
             ->firstOrFail();
 
-        App::setLocale($application->locale);
+        // Both language versions are always available; default to how it was filled.
+        $locale = in_array($locale, ['en', 'es'], true) ? $locale : $application->locale;
+        App::setLocale($locale);
 
         $qr = (new PngWriter())->write(
             new QrCode(
@@ -39,7 +41,7 @@ class ApplicationPdfController extends Controller
             'signature' => $signatureDataUri,
         ])->setPaper('letter');
 
-        $name = 'Vantins-'.str($application->company_name ?: 'application')->slug().'.pdf';
+        $name = 'Vantins-'.str($application->company_name ?: 'application')->slug().'-'.$locale.'.pdf';
 
         return $pdf->stream($name);
     }

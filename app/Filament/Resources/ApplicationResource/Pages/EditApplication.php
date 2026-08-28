@@ -22,6 +22,17 @@ class EditApplication extends EditRecord
                 ->color('warning')
                 ->url(fn () => route('apply.show', $this->record->token))
                 ->openUrlInNewTab(),
+            Actions\Action::make('pdf')
+                ->label(__('panel.action.pdf'))
+                ->icon('heroicon-o-document-arrow-down')
+                ->color('primary')
+                ->modalHeading(__('panel.action.pdf_heading'))
+                ->modalSubmitAction(false)
+                ->modalCancelActionLabel(__('filament-actions::modal.actions.cancel.label'))
+                ->modalContent(fn () => view('filament.application-pdf', [
+                    'en' => route('applications.pdf', ['token' => $this->record->token, 'locale' => 'en']),
+                    'es' => route('applications.pdf', ['token' => $this->record->token, 'locale' => 'es']),
+                ])),
             Actions\Action::make('changeStatus')
                 ->label(__('panel.action.change_status'))
                 ->icon('heroicon-o-arrow-path')

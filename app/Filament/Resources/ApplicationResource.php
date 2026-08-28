@@ -219,8 +219,13 @@ class ApplicationResource extends Resource
                     ->label(__('panel.action.pdf'))
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('primary')
-                    ->url(fn (Application $record) => route('applications.pdf', $record->token))
-                    ->openUrlInNewTab(),
+                    ->modalHeading(__('panel.action.pdf_heading'))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel(__('filament-actions::modal.actions.cancel.label'))
+                    ->modalContent(fn (Application $record) => view('filament.application-pdf', [
+                        'en' => route('applications.pdf', ['token' => $record->token, 'locale' => 'en']),
+                        'es' => route('applications.pdf', ['token' => $record->token, 'locale' => 'es']),
+                    ])),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
