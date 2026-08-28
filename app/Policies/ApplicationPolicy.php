@@ -36,7 +36,7 @@ class ApplicationPolicy
     // A signed / issued document can never be deleted.
     public function delete(User $user, Application $application): bool
     {
-        return ! $application->isLocked();
+        return $application->isDeletable();
     }
 
     public function deleteAny(User $user): bool
@@ -46,7 +46,7 @@ class ApplicationPolicy
 
     public function forceDelete(User $user, Application $application): bool
     {
-        return ! $application->isLocked();
+        return $application->isDeletable();
     }
 
     public function restore(User $user, Application $application): bool

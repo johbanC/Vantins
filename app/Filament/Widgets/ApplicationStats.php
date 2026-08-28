@@ -30,6 +30,8 @@ class ApplicationStats extends BaseWidget
                 ->color('primary'),
             Stat::make($label('issued'), $counts['issued'] ?? 0)
                 ->color('success'),
+            Stat::make($label('cancelled'), $counts['cancelled'] ?? 0)
+                ->color('danger'),
         ];
     }
 }

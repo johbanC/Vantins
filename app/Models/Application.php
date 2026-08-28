@@ -14,13 +14,14 @@ class Application extends Model
 
     public const STATUSES = [
         'created',    // auto: application created, link ready to send
-        'signed',     // auto: client finished the form and signed
-        'in_review',  // manual
-        'quoted',     // manual
-        'issued',     // manual
+        'signed',     // auto: client verified + signed
+        'in_review',  // manual: advisors reviewing the submitted info
+        'quoted',     // manual: quote created and sent to the client
+        'issued',     // manual: client accepted -> policy issued (final)
+        'cancelled',  // manual: the client cancelled, no further progress
     ];
 
-    /** Signed / issued: read-only, cannot be edited by the client nor deleted. */
+    /** Signed / issued: permanent, read-only (has a legal signature). */
     public const LOCKED_STATUSES = ['signed', 'issued'];
 
     protected $guarded = ['id'];
@@ -52,13 +53,23 @@ class Application extends Model
         // Total Policy Premium is derived from the payment plan the advisor enters.
         static::saving(fn (Application $application) => $application->applyPaymentPlan());
 
-        // A signed / issued document can never be deleted.
-        static::deleting(fn (Application $application) => ! $application->isLocked());
+        // Only a brand-new (unsigned) application may ever be deleted.
+        static::deleting(fn (Application $application) => $application->isDeletable());
     }
 
     public function isLocked(): bool
     {
         return in_array($this->status, self::LOCKED_STATUSES, true);
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === 'cancelled';
+    }
+
+    public function isDeletable(): bool
+    {
+        return $this->status === 'created';
     }
 
     /** Total Policy Premium = Down Payment + (Monthly Payment x Number of Payments). */

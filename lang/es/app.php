@@ -71,6 +71,8 @@ return [
     'saved_title' => 'Guardado',
     'saved_body' => 'La información se guardó. Envía este enlace al cliente para que revise y firme:',
     'already_signed_title' => 'Este documento ya fue firmado.',
+    'cancelled_title' => 'Esta solicitud fue cancelada',
+    'cancelled_body' => 'Esta solicitud ya no está activa. Comuníquese con Vantins si tiene alguna duda.',
     'review_title' => 'Revise su información',
     'review_advisor_hint' => 'Verifica que todo esté correcto. Puedes guardar sin firma, o capturar la firma del cliente ahora.',
     'review_client_hint' => 'Por favor revise que toda la información esté correcta, luego acepte los términos y firme.',

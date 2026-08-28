@@ -71,6 +71,8 @@ return [
     'saved_title' => 'Saved',
     'saved_body' => 'The information was saved. Send this link to the client so they can review and sign:',
     'already_signed_title' => 'This document has already been signed.',
+    'cancelled_title' => 'This application was cancelled',
+    'cancelled_body' => 'This application is no longer active. Please contact Vantins if you have any questions.',
     'review_title' => 'Review your information',
     'review_advisor_hint' => 'Check everything is correct. You can save without a signature, or capture the client signature now.',
     'review_client_hint' => 'Please review that all the information below is correct, then accept the terms and sign.',

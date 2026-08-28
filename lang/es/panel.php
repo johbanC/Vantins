@@ -19,6 +19,7 @@ return [
         'in_review' => 'En revisión',
         'quoted' => 'Cotizada',
         'issued' => 'Emitida',
+        'cancelled' => 'Cancelada',
     ],
 
     'section' => [

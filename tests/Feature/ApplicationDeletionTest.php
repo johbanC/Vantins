@@ -36,13 +36,19 @@ class ApplicationDeletionTest extends TestCase
         $this->assertDatabaseHas('applications', ['id' => $app->id]);
     }
 
-    public function test_an_unsigned_application_can_still_be_deleted(): void
+    public function test_only_a_created_application_can_be_deleted(): void
     {
-        $app = Application::create(['company_name' => 'Acme', 'status' => 'created']);
+        $created = Application::create(['company_name' => 'Acme', 'status' => 'created']);
+        $this->assertTrue($this->staff()->can('delete', $created));
+        $this->assertTrue((bool) $created->delete());
+        $this->assertDatabaseMissing('applications', ['id' => $created->id]);
 
-        $this->assertTrue($this->staff()->can('delete', $app));
-        $this->assertTrue((bool) $app->delete());
-        $this->assertDatabaseMissing('applications', ['id' => $app->id]);
+        foreach (['in_review', 'quoted', 'cancelled'] as $status) {
+            $app = Application::create(['company_name' => 'Acme', 'status' => $status]);
+            $this->assertFalse($this->staff()->can('delete', $app), "status $status must not be deletable");
+            $this->assertFalse($app->delete());
+            $this->assertDatabaseHas('applications', ['id' => $app->id]);
+        }
     }
 
     public function test_edit_page_hides_delete_for_a_signed_application(): void

@@ -19,6 +19,7 @@ return [
         'in_review' => 'In review',
         'quoted' => 'Quoted',
         'issued' => 'Issued',
+        'cancelled' => 'Cancelled',
     ],
 
     'section' => [

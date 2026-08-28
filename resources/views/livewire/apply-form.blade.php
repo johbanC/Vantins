@@ -32,6 +32,14 @@
             </div>
         </div>
 
+    {{-- ===== Cancelled ===== --}}
+    @elseif ($cancelled)
+        <div class="{{ $card }} py-10 text-center">
+            <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/20 text-2xl text-red-300">&times;</div>
+            <h2 class="text-lg font-semibold">{{ __('app.cancelled_title') }}</h2>
+            <p class="mt-2 text-sm text-white/60">{{ __('app.cancelled_body') }}</p>
+        </div>
+
     {{-- ===== Already signed ===== --}}
     @elseif ($locked)
         <div class="{{ $card }} space-y-6">

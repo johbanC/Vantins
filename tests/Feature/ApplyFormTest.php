@@ -44,6 +44,16 @@ class ApplyFormTest extends TestCase
             ->assertStatus(403);
     }
 
+    public function test_cancelled_application_shows_a_notice_not_the_form(): void
+    {
+        $app = Application::create(['company_name' => 'Acme', 'status' => 'cancelled']);
+
+        $this->get("/apply/{$app->token}")
+            ->assertOk()
+            ->assertSee(__('app.cancelled_title'))
+            ->assertDontSee(__('app.sign_send'));
+    }
+
     public function test_advisor_gets_the_editable_form(): void
     {
         $app = Application::create(['company_name' => 'Acme']);

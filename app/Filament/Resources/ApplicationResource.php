@@ -172,6 +172,7 @@ class ApplicationResource extends Resource
                         'in_review' => 'warning',
                         'quoted' => 'primary',
                         'issued' => 'success',
+                        'cancelled' => 'danger',
                         default => 'gray',
                     })
                     ->sortable(),

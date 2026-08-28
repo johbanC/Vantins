@@ -19,6 +19,9 @@ class ApplyForm extends Component
     /** Already signed / issued: nobody edits, nobody re-signs. */
     public bool $locked = false;
 
+    /** The client cancelled: the link just shows a notice. */
+    public bool $cancelled = false;
+
     /** '' while working, then 'saved' (advisor) or 'signed'. */
     public string $done = '';
 
@@ -58,7 +61,8 @@ class ApplyForm extends Component
         App::setLocale($this->application->locale);
 
         $this->locked = $this->application->isLocked();
-        $this->editable = auth()->check() && ! $this->locked;
+        $this->cancelled = $this->application->isCancelled();
+        $this->editable = auth()->check() && ! $this->locked && ! $this->cancelled;
 
         foreach ($this->singleFields as $field) {
             $this->form[$field] = $this->application->{$field};
@@ -160,7 +164,7 @@ class ApplyForm extends Component
     /** Client (or advisor doing assisted fill): accept disclosure and sign. */
     public function sign(): void
     {
-        abort_if($this->locked, 410);
+        abort_if($this->locked || $this->cancelled, 410);
 
         $this->validate([
             'signerName' => 'required|string|max:255',
