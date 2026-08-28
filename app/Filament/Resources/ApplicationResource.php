@@ -81,12 +81,6 @@ class ApplicationResource extends Resource
                 ->columns(2)
                 ->hiddenOn('create')
                 ->schema([
-                    Forms\Components\TextInput::make('total_policy_premium')
-                        ->label(__('panel.field.total_policy_premium'))
-                        ->prefix('$')
-                        ->disabled()
-                        ->dehydrated(false)
-                        ->helperText(__('panel.field.total_policy_premium_hint')),
                     Forms\Components\TextInput::make('down_payment')
                         ->label(__('panel.field.down_payment'))
                         ->prefix('$')
@@ -98,9 +92,13 @@ class ApplicationResource extends Resource
                     Forms\Components\TextInput::make('monthly_payment')
                         ->label(__('panel.field.monthly_payment'))
                         ->prefix('$')
+                        ->numeric(),
+                    Forms\Components\TextInput::make('total_policy_premium')
+                        ->label(__('panel.field.total_policy_premium'))
+                        ->prefix('$')
                         ->disabled()
                         ->dehydrated(false)
-                        ->helperText(__('panel.field.monthly_payment_hint')),
+                        ->helperText(__('panel.field.total_policy_premium_hint')),
                 ]),
 
             Forms\Components\Section::make(__('panel.section.agency'))

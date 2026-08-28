@@ -46,19 +46,20 @@ class Application extends Model
             $application->status ??= 'created';
         });
 
-        // Keep the monthly payment consistent whenever the advisor edits the plan.
+        // Total Policy Premium is derived from the payment plan the advisor enters.
         static::saving(fn (Application $application) => $application->applyPaymentPlan());
     }
 
-    /** Monthly Payment = (Total Policy Premium - Down Payment) / # of Payments. */
+    /** Total Policy Premium = Down Payment + (Monthly Payment x Number of Payments). */
     public function applyPaymentPlan(): void
     {
-        $n = (int) $this->number_of_payments;
-        $financed = (float) $this->total_policy_premium - (float) $this->down_payment;
+        $down = (float) $this->down_payment;
+        $monthly = (float) $this->monthly_payment;
+        $n = max((int) $this->number_of_payments, 0);
 
-        $this->monthly_payment = ($n > 0 && $financed > 0)
-            ? round($financed / $n, 2)
-            : null;
+        $total = $down + $monthly * $n;
+
+        $this->total_policy_premium = $total > 0 ? round($total, 2) : null;
     }
 
     public function creator(): BelongsTo
@@ -86,12 +87,9 @@ class Application extends Model
         return $this->hasMany(Coverage::class)->orderBy('sort_order');
     }
 
-    /** Total Policy Premium is always the sum of the coverage premiums. */
+    /** Recompute the derived Total Policy Premium and persist quietly. */
     public function recalculatePremium(): void
     {
-        $sum = (float) $this->coverages()->sum('premium');
-
-        $this->total_policy_premium = $sum > 0 ? $sum : null;
         $this->applyPaymentPlan();
         $this->saveQuietly();
     }

@@ -140,19 +140,23 @@
             @endif
 
             @if ($step === 6)
-                @php $premiumTotal = collect($coverages)->sum(fn ($r) => (float) ($r['premium'] ?? 0)); @endphp
                 @php
-                    $mp = ((int) ($form['number_of_payments'] ?? 0)) > 0 && ($premiumTotal - (float) ($form['down_payment'] ?? 0)) > 0
-                        ? round(($premiumTotal - (float) ($form['down_payment'] ?? 0)) / (int) $form['number_of_payments'], 2) : 0;
+                    $down = (float) ($form['down_payment'] ?? 0);
+                    $monthly = (float) ($form['monthly_payment'] ?? 0);
+                    $n = max((int) ($form['number_of_payments'] ?? 0), 0);
+                    $planTotal = $down + $monthly * $n;
                 @endphp
                 <h2 class="mb-5 text-lg font-semibold">{{ __('app.finance_proposal') }}</h2>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div><label class="{{ $label }}">{{ __('app.down_payment') }}</label><input type="number" step="0.01" wire:model="form.down_payment" class="{{ $input }}"></div>
                     <div><label class="{{ $label }}">{{ __('app.number_of_payments') }}</label><input type="number" wire:model="form.number_of_payments" class="{{ $input }}"></div>
+                    <div><label class="{{ $label }}">{{ __('app.monthly_payment') }}</label><input type="number" step="0.01" wire:model="form.monthly_payment" class="{{ $input }}"></div>
                 </div>
-                <div class="mt-4 space-y-2 border-t border-white/10 pt-4 text-sm">
-                    <div class="flex justify-between text-white/60"><span>{{ __('app.monthly_payment') }}</span><span class="font-semibold text-white">${{ number_format($mp, 2) }}</span></div>
-                    <div class="flex justify-between text-white/60"><span>{{ __('app.total_policy_premium') }}</span><span class="text-lg font-semibold text-brand">${{ number_format($premiumTotal, 2) }}</span></div>
+                <div class="mt-4 border-t border-white/10 pt-4 text-sm">
+                    <div class="flex justify-between text-white/60">
+                        <span>{{ __('app.total_policy_premium') }}</span>
+                        <span class="text-lg font-semibold text-brand">${{ number_format($planTotal, 2) }}</span>
+                    </div>
                 </div>
             @endif
 

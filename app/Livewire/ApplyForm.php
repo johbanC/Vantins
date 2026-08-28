@@ -40,7 +40,7 @@ class ApplyForm extends Component
         'company_name', 'company_representative', 'phone_number', 'email',
         'mailing_address', 'parking_address', 'effective_date', 'us_dot_number',
         'radius_of_operations', 'years_in_business', 'power_units', 'commodities_hauled',
-        'down_payment', 'number_of_payments',
+        'down_payment', 'number_of_payments', 'monthly_payment',
     ];
 
     protected const MAX_LENGTHS = [
@@ -110,7 +110,6 @@ class ApplyForm extends Component
         $this->syncRows('trailers', ['year', 'make', 'vin', 'body_type', 'stated_value']);
         $this->syncRows('coverages', ['coverage', 'limit_amount', 'deductible', 'premium']);
 
-        $this->application->recalculatePremium();
         $this->application->refresh();
     }
 
