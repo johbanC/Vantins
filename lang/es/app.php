@@ -65,6 +65,15 @@ return [
     'signer_name' => 'Asegurado — nombre completo',
     'signature' => 'Firma',
 
-    'thanks_title' => 'Solicitud enviada',
-    'thanks_body' => 'Gracias. Nuestro equipo recibió su información y se comunicará con usted pronto.',
+    'thanks_title' => 'Documento firmado',
+    'thanks_body' => 'Gracias. Recibimos su documento firmado.',
+
+    'saved_title' => 'Guardado',
+    'saved_body' => 'La información se guardó. Envía este enlace al cliente para que revise y firme:',
+    'already_signed_title' => 'Este documento ya fue firmado.',
+    'review_title' => 'Revise su información',
+    'review_advisor_hint' => 'Verifica que todo esté correcto. Puedes guardar sin firma, o capturar la firma del cliente ahora.',
+    'review_client_hint' => 'Por favor revise que toda la información esté correcta, luego acepte los términos y firme.',
+    'save_no_sign' => 'Guardar sin firmar',
+    'sign_send' => 'Firmar y enviar',
 ];

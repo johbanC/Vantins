@@ -65,6 +65,15 @@ return [
     'signer_name' => 'Insured — full name',
     'signature' => 'Signature',
 
-    'thanks_title' => 'Application submitted',
-    'thanks_body' => 'Thank you. Our team has received your information and will contact you shortly.',
+    'thanks_title' => 'Document signed',
+    'thanks_body' => 'Thank you. Your signed document has been received.',
+
+    'saved_title' => 'Saved',
+    'saved_body' => 'The information was saved. Send this link to the client so they can review and sign:',
+    'already_signed_title' => 'This document has already been signed.',
+    'review_title' => 'Review your information',
+    'review_advisor_hint' => 'Check everything is correct. You can save without a signature, or capture the client signature now.',
+    'review_client_hint' => 'Please review that all the information below is correct, then accept the terms and sign.',
+    'save_no_sign' => 'Save without signing',
+    'sign_send' => 'Sign and submit',
 ];

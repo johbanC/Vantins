@@ -13,78 +13,91 @@ class ApplyForm extends Component
 {
     public Application $application;
 
+    /** A signed-in staff member may edit; the client only reviews + signs. */
+    public bool $editable = false;
+
+    /** Already signed / issued: nobody edits, nobody re-signs. */
+    public bool $locked = false;
+
+    /** '' while working, then 'saved' (advisor) or 'signed'. */
+    public string $done = '';
+
     public int $step = 1;
 
-    public int $totalSteps = 5;
+    public int $totalSteps = 7; // advisor: 1 applicant .. 6 finance, 7 review + sign
 
-    /** Flat attribute bag for the single-row sections. */
     public array $form = [];
-
-    /** Repeatable rows filled by the client. */
     public array $drivers = [];
     public array $vehicles = [];
     public array $trailers = [];
+    public array $coverages = [];
 
     public bool $disclosureAccepted = false;
     public string $signerName = '';
-    public ?string $signatureData = null; // base64 PNG data URL from signature pad
+    public ?string $signatureData = null;
 
-    // The client only provides applicant information. Coverages, Agency and
-    // the Finance Proposal are filled by the advisor in the panel.
     protected array $singleFields = [
         'company_name', 'company_representative', 'phone_number', 'email',
         'mailing_address', 'parking_address', 'effective_date', 'us_dot_number',
         'radius_of_operations', 'years_in_business', 'power_units', 'commodities_hauled',
+        'down_payment', 'number_of_payments',
+    ];
+
+    protected const MAX_LENGTHS = [
+        'year' => 20, 'vin' => 64, 'make' => 190, 'body_type' => 190,
+        'state_issued' => 40, 'experience' => 60, 'cdl_number' => 190,
+        'driver_name' => 190, 'coverage' => 190, 'limit_amount' => 190, 'deductible' => 190,
     ];
 
     public function mount(string $token): void
     {
-        $this->application = Application::where('token', $token)->firstOrFail();
-
-        abort_if($this->application->status === 'issued', 410);
+        $this->application = Application::with(['drivers', 'vehicles', 'trailers', 'coverages'])
+            ->where('token', $token)
+            ->firstOrFail();
 
         App::setLocale($this->application->locale);
+
+        $this->locked = in_array($this->application->status, ['signed', 'issued'], true);
+        $this->editable = auth()->check() && ! $this->locked;
 
         foreach ($this->singleFields as $field) {
             $this->form[$field] = $this->application->{$field};
         }
         $this->form['effective_date'] = optional($this->application->effective_date)->format('Y-m-d');
 
-        $this->drivers = $this->application->drivers->map(fn ($d) => $d->only([
-            'driver_name', 'dob', 'cdl_number', 'state_issued', 'experience', 'date_of_hire',
-        ]))->toArray();
-        $this->vehicles = $this->application->vehicles->map(fn ($v) => $v->only([
-            'year', 'make', 'vin', 'body_type', 'stated_value',
-        ]))->toArray();
-        $this->trailers = $this->application->trailers->map(fn ($t) => $t->only([
-            'year', 'make', 'vin', 'body_type', 'stated_value',
-        ]))->toArray();
+        $this->drivers = $this->application->drivers->map->only(['driver_name', 'dob', 'cdl_number', 'state_issued', 'experience', 'date_of_hire'])->toArray();
+        $this->vehicles = $this->application->vehicles->map->only(['year', 'make', 'vin', 'body_type', 'stated_value'])->toArray();
+        $this->trailers = $this->application->trailers->map->only(['year', 'make', 'vin', 'body_type', 'stated_value'])->toArray();
+        $this->coverages = $this->application->coverages->map->only(['coverage', 'limit_amount', 'deductible', 'premium'])->toArray();
 
         $this->signerName = $this->application->signer_name ?? '';
     }
 
     public function switchLocale(string $locale): void
     {
-        if (! in_array($locale, ['en', 'es'], true)) {
-            return;
+        if (in_array($locale, ['en', 'es'], true)) {
+            $this->application->update(['locale' => $locale]);
+            App::setLocale($locale);
         }
-        $this->application->update(['locale' => $locale]);
-        App::setLocale($locale);
     }
 
     public function addRow(string $collection): void
     {
+        abort_unless($this->editable, 403);
         $this->{$collection}[] = [];
     }
 
     public function removeRow(string $collection, int $index): void
     {
+        abort_unless($this->editable, 403);
         unset($this->{$collection}[$index]);
         $this->{$collection} = array_values($this->{$collection});
     }
 
     public function persist(): void
     {
+        abort_unless($this->editable, 403);
+
         $data = collect($this->form)
             ->only($this->singleFields)
             ->map(fn ($v) => $v === '' ? null : $v)
@@ -95,14 +108,11 @@ class ApplyForm extends Component
         $this->syncRows('drivers', ['driver_name', 'dob', 'cdl_number', 'state_issued', 'experience', 'date_of_hire']);
         $this->syncRows('vehicles', ['year', 'make', 'vin', 'body_type', 'stated_value']);
         $this->syncRows('trailers', ['year', 'make', 'vin', 'body_type', 'stated_value']);
-    }
+        $this->syncRows('coverages', ['coverage', 'limit_amount', 'deductible', 'premium']);
 
-    /** Column length caps so oversized input can never break the insert. */
-    protected const MAX_LENGTHS = [
-        'year' => 20, 'vin' => 64, 'make' => 190, 'body_type' => 190,
-        'state_issued' => 40, 'experience' => 60, 'cdl_number' => 190,
-        'driver_name' => 190,
-    ];
+        $this->application->recalculatePremium();
+        $this->application->refresh();
+    }
 
     protected function syncRows(string $relation, array $fields): void
     {
@@ -141,15 +151,27 @@ class ApplyForm extends Component
         $this->step = max($this->step - 1, 1);
     }
 
-    public function submit(): void
+    /** Advisor: store what has been entered without a signature yet. */
+    public function saveDraft(): void
     {
+        $this->persist();
+        $this->done = 'saved';
+    }
+
+    /** Client (or advisor doing assisted fill): accept disclosure and sign. */
+    public function sign(): void
+    {
+        abort_if($this->locked, 410);
+
         $this->validate([
             'signerName' => 'required|string|max:255',
             'disclosureAccepted' => 'accepted',
             'signatureData' => 'required|string',
         ]);
 
-        $this->persist();
+        if ($this->editable) {
+            $this->persist();
+        }
 
         $png = base64_decode(preg_replace('#^data:image/\w+;base64,#', '', $this->signatureData));
         $path = "signatures/{$this->application->token}.png";
@@ -164,7 +186,8 @@ class ApplyForm extends Component
 
         $this->application->markStatus('signed');
 
-        $this->step = $this->totalSteps + 1; // thank-you screen
+        $this->done = 'signed';
+        $this->locked = true;
     }
 
     public function render()
