@@ -22,6 +22,8 @@ return [
         'cancelled' => 'Cancelada',
     ],
 
+    'locked_notice' => 'Esta solicitud fue firmada por el cliente. La propuesta de financiamiento, las coberturas y los anexos quedan de solo lectura: no se pueden editar ni eliminar.',
+
     'section' => [
         'client' => 'Cliente',
         'client_hint' => 'Lo mínimo para identificar la solicitud. El cliente llena el resto desde su enlace.',

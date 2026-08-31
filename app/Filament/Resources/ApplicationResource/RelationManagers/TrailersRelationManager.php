@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ApplicationResource\RelationManagers;
 
+use App\Filament\Resources\ApplicationResource\RelationManagers\Concerns\LocksWithApplication;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class TrailersRelationManager extends RelationManager
 {
+    use LocksWithApplication;
+
     protected static string $relationship = 'trailers';
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
@@ -31,6 +34,8 @@ class TrailersRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
+        $unlocked = fn (): bool => ! $this->isApplicationLocked();
+
         return $table
             ->recordTitleAttribute('vin')
             ->reorderable('sort_order')
@@ -41,8 +46,15 @@ class TrailersRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('body_type')->label(__('app.body_type')),
                 Tables\Columns\TextColumn::make('stated_value')->label(__('app.stated_value'))->money('USD'),
             ])
-            ->headerActions([Tables\Actions\CreateAction::make()->label(__('app.add'))])
-            ->actions([Tables\Actions\EditAction::make(), Tables\Actions\DeleteAction::make()])
-            ->bulkActions([Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()])]);
+            ->headerActions([Tables\Actions\CreateAction::make()->label(__('app.add'))->visible($unlocked)])
+            ->actions([
+                Tables\Actions\EditAction::make()->visible($unlocked),
+                Tables\Actions\DeleteAction::make()->visible($unlocked),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ])->visible($unlocked),
+            ]);
     }
 }

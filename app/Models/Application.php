@@ -24,6 +24,18 @@ class Application extends Model
     /** Signed / issued: permanent, read-only (has a legal signature). */
     public const LOCKED_STATUSES = ['signed', 'issued'];
 
+    /**
+     * Columns that may still change on a locked application: status handling,
+     * the signature block, the generated PDF and the display language. Any other
+     * column is frozen once the client has signed.
+     */
+    public const MUTABLE_WHEN_LOCKED = [
+        'status', 'locale', 'pdf_path',
+        'signer_name', 'signature_path', 'signed_ip', 'disclosure_accepted_at',
+        'submitted_at', 'in_review_at', 'quoted_at', 'signed_at', 'issued_at',
+        'updated_at',
+    ];
+
     protected $guarded = ['id'];
 
     protected $casts = [
@@ -52,6 +64,19 @@ class Application extends Model
 
         // Total Policy Premium is derived from the payment plan the advisor enters.
         static::saving(fn (Application $application) => $application->applyPaymentPlan());
+
+        // Once signed / issued, only the status + signature block may change.
+        static::updating(function (Application $application): bool {
+            if (! in_array($application->getOriginal('status'), self::LOCKED_STATUSES, true)) {
+                return true;
+            }
+
+            $touchesFrozenColumn = collect(array_keys($application->getDirty()))
+                ->diff(self::MUTABLE_WHEN_LOCKED)
+                ->isNotEmpty();
+
+            return ! $touchesFrozenColumn;
+        });
 
         // Only a brand-new (unsigned) application may ever be deleted.
         static::deleting(fn (Application $application) => $application->isDeletable());
@@ -116,10 +141,20 @@ class Application extends Model
         $this->saveQuietly();
     }
 
+    /** Allowed manual status moves out of a locked (signed) application. */
+    public const LOCKED_STATUS_TRANSITIONS = ['signed' => ['issued']];
+
     /** Mark a new status and stamp its timestamp column when present. */
     public function markStatus(string $status): void
     {
         abort_unless(in_array($status, self::STATUSES, true), 422);
+
+        // A signed / issued document may only move forward to "issued" – never
+        // back to an editable or deletable state.
+        if ($this->isLocked() && $status !== $this->status) {
+            $allowed = self::LOCKED_STATUS_TRANSITIONS[$this->status] ?? [];
+            abort_unless(in_array($status, $allowed, true), 403);
+        }
 
         $column = match ($status) {
             'signed' => 'signed_at',

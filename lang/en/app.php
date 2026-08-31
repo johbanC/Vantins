@@ -64,6 +64,10 @@ return [
     'disclosure_accept' => 'I have read and accept the disclosure above.',
     'signer_name' => 'Insured — full name',
     'signature' => 'Signature',
+    'legal_representative' => 'Legal representative',
+    'date' => 'Date',
+    'reference' => 'Reference',
+    'verify_qr' => 'To verify the validity of this document, scan this QR code.',
 
     'thanks_title' => 'Document signed',
     'thanks_body' => 'Thank you. Your signed document has been received.',

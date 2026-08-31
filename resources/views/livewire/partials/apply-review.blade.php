@@ -79,8 +79,8 @@
                     @foreach ($application->coverages as $c)
                         <tr>
                             <td class="{{ $td }}">{{ $c->coverage ?: '—' }}</td>
-                            <td class="{{ $td }}">{{ $c->limit_amount ?: '—' }}</td>
-                            <td class="{{ $td }}">{{ $c->deductible ?: '—' }}</td>
+                            <td class="{{ $td }}">{{ $c->formatted_limit_amount ?: '—' }}</td>
+                            <td class="{{ $td }}">{{ $c->formatted_deductible ?: '—' }}</td>
                         </tr>
                     @endforeach
                 </tbody>

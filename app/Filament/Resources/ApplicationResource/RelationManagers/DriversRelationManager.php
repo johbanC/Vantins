@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ApplicationResource\RelationManagers;
 
+use App\Filament\Resources\ApplicationResource\RelationManagers\Concerns\LocksWithApplication;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class DriversRelationManager extends RelationManager
 {
+    use LocksWithApplication;
+
     protected static string $relationship = 'drivers';
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
@@ -32,6 +35,8 @@ class DriversRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
+        $unlocked = fn (): bool => ! $this->isApplicationLocked();
+
         return $table
             ->recordTitleAttribute('driver_name')
             ->reorderable('sort_order')
@@ -43,8 +48,15 @@ class DriversRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('experience')->label(__('app.experience')),
                 Tables\Columns\TextColumn::make('date_of_hire')->label(__('app.date_of_hire'))->date(),
             ])
-            ->headerActions([Tables\Actions\CreateAction::make()->label(__('app.add'))])
-            ->actions([Tables\Actions\EditAction::make(), Tables\Actions\DeleteAction::make()])
-            ->bulkActions([Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()])]);
+            ->headerActions([Tables\Actions\CreateAction::make()->label(__('app.add'))->visible($unlocked)])
+            ->actions([
+                Tables\Actions\EditAction::make()->visible($unlocked),
+                Tables\Actions\DeleteAction::make()->visible($unlocked),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ])->visible($unlocked),
+            ]);
     }
 }

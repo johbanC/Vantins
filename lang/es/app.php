@@ -64,6 +64,10 @@ return [
     'disclosure_accept' => 'He leído y acepto la declaración anterior.',
     'signer_name' => 'Asegurado — nombre completo',
     'signature' => 'Firma',
+    'legal_representative' => 'Representante legal',
+    'date' => 'Fecha',
+    'reference' => 'Referencia',
+    'verify_qr' => 'Para verificar la validez de este documento, escanee este código QR.',
 
     'thanks_title' => 'Documento firmado',
     'thanks_body' => 'Gracias. Recibimos su documento firmado.',

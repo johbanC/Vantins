@@ -12,6 +12,17 @@ class EditApplication extends EditRecord
 {
     protected static string $resource = ApplicationResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return $this->record->isLocked() ? __('panel.locked_notice') : null;
+    }
+
+    /** A signed / issued application is frozen: no Save button. */
+    protected function getFormActions(): array
+    {
+        return $this->record->isLocked() ? [] : parent::getFormActions();
+    }
+
     protected function getHeaderActions(): array
     {
         return [

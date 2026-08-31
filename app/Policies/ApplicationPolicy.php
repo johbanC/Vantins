@@ -23,6 +23,10 @@ class ApplicationPolicy
         return true;
     }
 
+    // The record stays viewable after signing, but every editable section is
+    // disabled and the Save button is removed (see EditApplication /
+    // ApplicationResource::form). The model itself also refuses to persist
+    // changes to a locked application, so this can safely stay open.
     public function update(User $user, Application $application): bool
     {
         return true;

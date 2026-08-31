@@ -38,8 +38,16 @@ class ApplicationResource extends Resource
             ->all();
     }
 
+    /** Signed / issued applications are frozen: every editable section is disabled. */
+    protected static function lockedCallback(): \Closure
+    {
+        return fn (?Application $record): bool => (bool) $record?->isLocked();
+    }
+
     public static function form(Form $form): Form
     {
+        $locked = static::lockedCallback();
+
         return $form->schema([
             // Shown only when creating: the minimum to identify the application.
             Forms\Components\Section::make(__('panel.section.client'))
@@ -61,6 +69,7 @@ class ApplicationResource extends Resource
                 ->description(__('panel.section.schedules_hint'))
                 ->columns(2)
                 ->hiddenOn('create')
+                ->disabled($locked)
                 ->schema([
                     Forms\Components\TextInput::make('company_name')->label(__('panel.field.company_name')),
                     Forms\Components\TextInput::make('company_representative')->label(__('panel.field.company_representative')),
@@ -80,6 +89,7 @@ class ApplicationResource extends Resource
                 ->description(__('panel.section.finance_hint'))
                 ->columns(2)
                 ->hiddenOn('create')
+                ->disabled($locked)
                 ->schema([
                     Forms\Components\TextInput::make('down_payment')
                         ->label(__('panel.field.down_payment'))
@@ -110,6 +120,7 @@ class ApplicationResource extends Resource
             Forms\Components\Section::make(__('panel.section.agency'))
                 ->columns(2)
                 ->hiddenOn('create')
+                ->disabled($locked)
                 ->schema([
                     Forms\Components\TextInput::make('agency_name')
                         ->label(__('panel.field.agency_name'))

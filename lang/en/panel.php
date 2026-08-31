@@ -22,6 +22,8 @@ return [
         'cancelled' => 'Cancelled',
     ],
 
+    'locked_notice' => 'This application has been signed by the client. The finance proposal, coverages and schedules are now read-only and cannot be edited or deleted.',
+
     'section' => [
         'client' => 'Client',
         'client_hint' => 'Just enough to identify this application. The client fills the rest through their link.',
