@@ -25,6 +25,11 @@ Route::get('/applications/{token}/pdf/{locale?}', [ApplicationPdfController::cla
     ->whereIn('locale', ['en', 'es'])
     ->name('applications.pdf');
 
+// Welcome letter, sent to the client once the document is signed.
+Route::get('/applications/{token}/welcome-letter/{locale?}', [ApplicationPdfController::class, 'welcomeLetter'])
+    ->whereIn('locale', ['en', 'es'])
+    ->name('applications.welcome-letter');
+
 // Public document verification (QR target).
 Route::get('/verify/{code}', function (string $code) {
     $application = Application::where('verification_code', $code)->first();

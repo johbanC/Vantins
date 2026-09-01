@@ -84,4 +84,10 @@ return [
     'sign_send' => 'Firmar y enviar',
 
     'pdf_not_ready' => 'El PDF solo está disponible después de que el cliente firme el documento.',
+
+    'welcome_letter_title' => 'Carta de Bienvenida',
+    'welcome_letter_p1' => 'Gracias por elegir a Vantins Insurance Agency LLC para representar la protección de sus bienes este año con el mejor seguro comercial. Nuestra compañía le brindará todos los servicios necesarios durante la vigencia de su póliza.',
+    'welcome_letter_p2' => 'Nuestra misión es dedicarnos a brindarle el servicio más completo y actualizado a usted, los transportistas.',
+    'welcome_letter_p3' => 'Esperamos que se sienta cómodo con nuestros servicios y viva una nueva experiencia para contarles a sus amigos, colegas y familiares. No dude en contactarnos por la línea de su asesor de confianza o nuestra línea de atención al cliente +1 (754) 290-0308.',
+    'welcome_letter_signoff' => 'Vantins Insurance Agency LLC',
 ];

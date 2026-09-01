@@ -47,6 +47,21 @@ class EditApplication extends EditRecord
                     'en' => route('applications.pdf', ['token' => $this->record->token, 'locale' => 'en']),
                     'es' => route('applications.pdf', ['token' => $this->record->token, 'locale' => 'es']),
                 ])),
+            Actions\Action::make('welcomeLetter')
+                ->label(__('panel.action.welcome_letter'))
+                ->icon('heroicon-o-envelope')
+                ->color('primary')
+                ->disabled(fn () => ! $this->record->canSendWelcomeLetter())
+                ->tooltip(fn () => $this->record->canSendWelcomeLetter() ? null : __('panel.action.pdf_disabled_hint'))
+                ->extraAttributes(['style' => 'pointer-events: auto'])
+                ->modalHeading(__('panel.action.welcome_letter_heading'))
+                ->modalSubmitAction(false)
+                ->modalCancelActionLabel(__('filament-actions::modal.actions.cancel.label'))
+                ->modalContent(fn () => view('filament.welcome-letter', [
+                    'en' => route('applications.welcome-letter', ['token' => $this->record->token, 'locale' => 'en']),
+                    'es' => route('applications.welcome-letter', ['token' => $this->record->token, 'locale' => 'es']),
+                    'sentAt' => $this->record->welcome_letter_sent_at,
+                ])),
             Actions\Action::make('changeStatus')
                 ->label(__('panel.action.change_status'))
                 ->icon('heroicon-o-arrow-path')

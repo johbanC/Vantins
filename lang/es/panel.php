@@ -65,6 +65,7 @@ return [
         'created_by' => 'Creada por',
         'created_at' => 'Creada',
         'signed_at' => 'Firmada',
+        'welcome_letter_sent_at' => 'Carta de bienvenida enviada',
         'not_signed' => 'Aún sin firmar',
     ],
 
@@ -78,6 +79,10 @@ return [
         'pdf' => 'PDF',
         'pdf_disabled_hint' => 'Acción inhabilitada hasta que el cliente firme el documento.',
         'pdf_heading' => 'Descargar PDF',
+        'welcome_letter' => 'Carta de bienvenida',
+        'welcome_letter_heading' => 'Enviar la carta de bienvenida',
+        'welcome_letter_hint' => 'Disponible en ambos idiomas. La fecha de la carta se fija la primera vez que se genera.',
+        'welcome_letter_sent_on' => 'Ya enviada el :date.',
         'pdf_hint' => 'El mismo documento está disponible en los dos idiomas.',
         'pdf_es' => 'PDF en Español',
         'pdf_en' => 'PDF en Inglés',

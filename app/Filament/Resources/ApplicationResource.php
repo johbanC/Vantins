@@ -192,6 +192,7 @@ class ApplicationResource extends Resource
                 Tables\Columns\TextColumn::make('us_dot_number')->label(__('panel.field.us_dot_number'))->searchable()->toggleable(),
                 Tables\Columns\TextColumn::make('total_policy_premium')->label(__('panel.field.total_policy_premium'))->money('USD')->sortable()->toggleable(),
                 Tables\Columns\TextColumn::make('signed_at')->label(__('panel.field.signed_at'))->dateTime()->sortable()->toggleable(),
+                Tables\Columns\TextColumn::make('welcome_letter_sent_at')->label(__('panel.field.welcome_letter_sent_at'))->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true)->placeholder('—'),
                 Tables\Columns\TextColumn::make('created_at')->label(__('panel.field.created_at'))->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
@@ -244,6 +245,21 @@ class ApplicationResource extends Resource
                     ->modalContent(fn (Application $record) => view('filament.application-pdf', [
                         'en' => route('applications.pdf', ['token' => $record->token, 'locale' => 'en']),
                         'es' => route('applications.pdf', ['token' => $record->token, 'locale' => 'es']),
+                    ])),
+                Tables\Actions\Action::make('welcomeLetter')
+                    ->label(__('panel.action.welcome_letter'))
+                    ->icon('heroicon-o-envelope')
+                    ->color('primary')
+                    ->disabled(fn (Application $record) => ! $record->canSendWelcomeLetter())
+                    ->tooltip(fn (Application $record) => $record->canSendWelcomeLetter() ? null : __('panel.action.pdf_disabled_hint'))
+                    ->extraAttributes(['style' => 'pointer-events: auto'])
+                    ->modalHeading(__('panel.action.welcome_letter_heading'))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel(__('filament-actions::modal.actions.cancel.label'))
+                    ->modalContent(fn (Application $record) => view('filament.welcome-letter', [
+                        'en' => route('applications.welcome-letter', ['token' => $record->token, 'locale' => 'en']),
+                        'es' => route('applications.welcome-letter', ['token' => $record->token, 'locale' => 'es']),
+                        'sentAt' => $record->welcome_letter_sent_at,
                     ])),
                 Tables\Actions\EditAction::make(),
             ])

@@ -30,7 +30,7 @@ class Application extends Model
      * column is frozen once the client has signed.
      */
     public const MUTABLE_WHEN_LOCKED = [
-        'status', 'locale', 'pdf_path',
+        'status', 'locale', 'pdf_path', 'welcome_letter_sent_at',
         'signer_name', 'signature_path', 'signed_ip', 'disclosure_accepted_at',
         'submitted_at', 'in_review_at', 'quoted_at', 'signed_at', 'issued_at',
         'updated_at',
@@ -51,6 +51,7 @@ class Application extends Model
         'quoted_at' => 'datetime',
         'signed_at' => 'datetime',
         'issued_at' => 'datetime',
+        'welcome_letter_sent_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -105,6 +106,32 @@ class Application extends Model
     public function canGeneratePdf(): bool
     {
         return $this->isLocked() && (bool) $this->signature_path;
+    }
+
+    /** The welcome letter follows the signed document: same availability rule. */
+    public function canSendWelcomeLetter(): bool
+    {
+        return $this->canGeneratePdf();
+    }
+
+    /** Person the documents are addressed to. */
+    public function recipientName(): string
+    {
+        return $this->signer_name
+            ?: $this->company_representative
+            ?: $this->company_name
+            ?: '';
+    }
+
+    /**
+     * Stamp the moment the welcome letter first goes out. The date printed on
+     * the letter is this timestamp, so it stays fixed on later downloads.
+     */
+    public function markWelcomeLetterSent(): void
+    {
+        if (! $this->welcome_letter_sent_at) {
+            $this->forceFill(['welcome_letter_sent_at' => now()])->save();
+        }
     }
 
     /** Total Policy Premium = Down Payment + (Monthly Payment x Number of Payments). */

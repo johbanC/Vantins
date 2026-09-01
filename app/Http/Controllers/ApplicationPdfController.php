@@ -53,6 +53,30 @@ class ApplicationPdfController extends Controller
         return $pdf->stream($name);
     }
 
+    public function welcomeLetter(string $token, ?string $locale = null)
+    {
+        $application = Application::where('token', $token)->firstOrFail();
+
+        // Same rule as the branded PDF: only after the client has signed.
+        abort_unless($application->canSendWelcomeLetter(), 403, __('app.pdf_not_ready'));
+
+        $locale = in_array($locale, ['en', 'es'], true) ? $locale : $application->locale;
+        App::setLocale($locale);
+
+        // The letter carries the date it first went out and keeps it afterwards.
+        $application->markWelcomeLetterSent();
+
+        $pdf = Pdf::loadView('pdf.welcome-letter', [
+            'application' => $application,
+            'recipient' => $application->recipientName(),
+            'sentAt' => $application->welcome_letter_sent_at,
+        ])->setPaper('letter');
+
+        $name = 'Vantins-welcome-'.str($application->company_name ?: 'client')->slug().'-'.$locale.'.pdf';
+
+        return $pdf->stream($name);
+    }
+
     /** Static legal-representative signature image as a data URI, or null when not configured. */
     private function representativeSignature(): ?string
     {
