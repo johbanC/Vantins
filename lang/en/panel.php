@@ -76,6 +76,7 @@ return [
         'copy' => 'Copy',
         'copied' => 'Copied!',
         'pdf' => 'PDF',
+        'pdf_disabled_hint' => 'Disabled until the client signs the document.',
         'pdf_heading' => 'Download PDF',
         'pdf_hint' => 'The same document is available in both languages.',
         'pdf_es' => 'Spanish PDF',

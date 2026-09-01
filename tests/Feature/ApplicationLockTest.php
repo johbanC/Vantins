@@ -165,7 +165,7 @@ class ApplicationLockTest extends TestCase
             ->assertHeader('content-type', 'application/pdf');
     }
 
-    public function test_pdf_action_is_hidden_in_the_panel_until_signed(): void
+    public function test_pdf_action_is_visible_but_disabled_until_signed(): void
     {
         $open = Application::create(['company_name' => 'Acme', 'status' => 'created']);
         $signed = Application::create(['company_name' => 'Beta', 'status' => 'signed']);
@@ -173,10 +173,12 @@ class ApplicationLockTest extends TestCase
 
         Livewire::actingAs($this->staff())
             ->test(EditApplication::class, ['record' => $open->getKey()])
-            ->assertActionHidden('pdf');
+            ->assertActionVisible('pdf')
+            ->assertActionDisabled('pdf');
 
         Livewire::actingAs($this->staff())
             ->test(EditApplication::class, ['record' => $signed->getKey()])
-            ->assertActionVisible('pdf');
+            ->assertActionVisible('pdf')
+            ->assertActionEnabled('pdf');
     }
 }

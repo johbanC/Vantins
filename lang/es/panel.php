@@ -76,6 +76,7 @@ return [
         'copy' => 'Copiar',
         'copied' => '¡Copiado!',
         'pdf' => 'PDF',
+        'pdf_disabled_hint' => 'Acción inhabilitada hasta que el cliente firme el documento.',
         'pdf_heading' => 'Descargar PDF',
         'pdf_hint' => 'El mismo documento está disponible en los dos idiomas.',
         'pdf_es' => 'PDF en Español',
