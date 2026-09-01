@@ -97,6 +97,16 @@ class Application extends Model
         return $this->status === 'created';
     }
 
+    /**
+     * The branded PDF is only available once the client has signed: before that
+     * the application is still editable, so a generated document could show data
+     * the client never agreed to.
+     */
+    public function canGeneratePdf(): bool
+    {
+        return $this->isLocked() && (bool) $this->signature_path;
+    }
+
     /** Total Policy Premium = Down Payment + (Monthly Payment x Number of Payments). */
     public function applyPaymentPlan(): void
     {

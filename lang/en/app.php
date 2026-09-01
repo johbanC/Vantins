@@ -82,4 +82,6 @@ return [
     'review_client_hint' => 'Please review that all the information below is correct, then accept the terms and sign.',
     'save_no_sign' => 'Save without signing',
     'sign_send' => 'Sign and submit',
+
+    'pdf_not_ready' => 'The PDF is available only after the client has signed the document.',
 ];

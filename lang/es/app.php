@@ -82,4 +82,6 @@ return [
     'review_client_hint' => 'Por favor revise que toda la información esté correcta, luego acepte los términos y firme.',
     'save_no_sign' => 'Guardar sin firmar',
     'sign_send' => 'Firmar y enviar',
+
+    'pdf_not_ready' => 'El PDF solo está disponible después de que el cliente firme el documento.',
 ];

@@ -144,4 +144,39 @@ class ApplicationLockTest extends TestCase
         $this->assertFalse($openRm->instance()->isApplicationLocked());
         $openRm->assertTableActionExists('create');
     }
+
+    public function test_pdf_is_not_generated_until_the_client_has_signed(): void
+    {
+        $app = Application::create(['company_name' => 'Acme', 'status' => 'created']);
+
+        $this->assertFalse($app->canGeneratePdf());
+        $this->get('/applications/'.$app->token.'/pdf')->assertForbidden();
+
+        // Manually flipping the status is not enough: a real signature is required.
+        $app->markStatus('signed');
+        $this->assertFalse($app->fresh()->canGeneratePdf());
+        $this->get('/applications/'.$app->token.'/pdf')->assertForbidden();
+
+        $app->forceFill(['signature_path' => 'signatures/'.$app->token.'.png'])->save();
+
+        $this->assertTrue($app->fresh()->canGeneratePdf());
+        $this->get('/applications/'.$app->token.'/pdf')
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_pdf_action_is_hidden_in_the_panel_until_signed(): void
+    {
+        $open = Application::create(['company_name' => 'Acme', 'status' => 'created']);
+        $signed = Application::create(['company_name' => 'Beta', 'status' => 'signed']);
+        $signed->forceFill(['signature_path' => 'signatures/'.$signed->token.'.png'])->save();
+
+        Livewire::actingAs($this->staff())
+            ->test(EditApplication::class, ['record' => $open->getKey()])
+            ->assertActionHidden('pdf');
+
+        Livewire::actingAs($this->staff())
+            ->test(EditApplication::class, ['record' => $signed->getKey()])
+            ->assertActionVisible('pdf');
+    }
 }

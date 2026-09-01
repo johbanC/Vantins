@@ -17,6 +17,10 @@ class ApplicationPdfController extends Controller
             ->where('token', $token)
             ->firstOrFail();
 
+        // No document exists until the client has signed. Before that the
+        // application is still editable and a PDF could misrepresent it.
+        abort_unless($application->canGeneratePdf(), 403, __('app.pdf_not_ready'));
+
         // Both language versions are always available; default to how it was filled.
         $locale = in_array($locale, ['en', 'es'], true) ? $locale : $application->locale;
         App::setLocale($locale);

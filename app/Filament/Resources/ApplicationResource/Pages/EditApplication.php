@@ -37,6 +37,7 @@ class EditApplication extends EditRecord
                 ->label(__('panel.action.pdf'))
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('primary')
+                ->visible(fn () => $this->record->canGeneratePdf())
                 ->modalHeading(__('panel.action.pdf_heading'))
                 ->modalSubmitAction(false)
                 ->modalCancelActionLabel(__('filament-actions::modal.actions.cancel.label'))

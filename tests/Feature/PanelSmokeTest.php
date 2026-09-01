@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\ApplicationResource\Pages\CreateApplication;
+use App\Filament\Resources\ApplicationResource\Pages\EditApplication;
 use App\Models\Application;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class PanelSmokeTest extends TestCase
@@ -48,8 +51,8 @@ class PanelSmokeTest extends TestCase
     {
         $user = $this->staff();
 
-        \Livewire\Livewire::actingAs($user)
-            ->test(\App\Filament\Resources\ApplicationResource\Pages\CreateApplication::class)
+        Livewire::actingAs($user)
+            ->test(CreateApplication::class)
             ->fillForm(['company_name' => 'Acme Freight', 'email' => 'ops@acme.test'])
             ->call('create')
             ->assertHasNoFormErrors();
@@ -66,8 +69,8 @@ class PanelSmokeTest extends TestCase
     {
         $app = Application::create(['company_name' => 'Acme']);
 
-        \Livewire\Livewire::actingAs($this->staff())
-            ->test(\App\Filament\Resources\ApplicationResource\Pages\EditApplication::class, ['record' => $app->getKey()])
+        Livewire::actingAs($this->staff())
+            ->test(EditApplication::class, ['record' => $app->getKey()])
             ->fillForm([
                 'down_payment' => 4000,
                 'number_of_payments' => 10,
@@ -79,10 +82,16 @@ class PanelSmokeTest extends TestCase
         $this->assertEquals(18119.50, $app->fresh()->total_policy_premium);
     }
 
-    public function test_pdf_is_available_in_both_languages(): void
+    public function test_pdf_is_available_in_both_languages_once_signed(): void
     {
         $app = Application::create(['company_name' => 'Acme', 'locale' => 'es']);
         $app->coverages()->create(['coverage' => 'Liability', 'premium' => 1000]);
+
+        // Not signed yet: no document.
+        $this->get('/applications/'.$app->token.'/pdf')->assertForbidden();
+
+        $app->forceFill(['signature_path' => 'signatures/'.$app->token.'.png'])->save();
+        $app->markStatus('signed');
 
         foreach (['en', 'es', null] as $locale) {
             $url = '/applications/'.$app->token.'/pdf'.($locale ? "/{$locale}" : '');
