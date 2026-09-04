@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Filament\Resources\ApplicationResource\Pages\EditApplication;
+use App\Mail\WelcomeLetterMail;
 use App\Models\Application;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -95,5 +97,25 @@ class WelcomeLetterTest extends TestCase
         $app->markWelcomeLetterSent();
 
         $this->assertNotNull($app->fresh()->welcome_letter_sent_at);
+    }
+
+    public function test_mailable_renders_in_the_applications_own_locale(): void
+    {
+        $es = $this->signed(['locale' => 'es', 'signer_name' => 'Carlos Perez']);
+        $this->assertStringContainsString('Estimado/a Carlos Perez', (new WelcomeLetterMail($es))->render());
+
+        $en = $this->signed(['locale' => 'en', 'signer_name' => 'John Doe']);
+        $this->assertStringContainsString('Dear John Doe', (new WelcomeLetterMail($en))->render());
+    }
+
+    public function test_mailable_is_sent_to_the_application_email(): void
+    {
+        Mail::fake();
+
+        $app = $this->signed(['email' => 'client@example.com']);
+
+        Mail::to($app->email)->send(new WelcomeLetterMail($app));
+
+        Mail::assertSent(WelcomeLetterMail::class, fn ($mail) => $mail->hasTo('client@example.com') && $mail->application->is($app));
     }
 }
