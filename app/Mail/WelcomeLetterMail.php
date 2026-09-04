@@ -35,21 +35,8 @@ class WelcomeLetterMail extends Mailable
             view: 'mail.welcome-letter',
             with: [
                 'recipient' => $this->application->recipientName(),
-                'logo' => $this->logoDataUri(),
             ],
         );
-    }
-
-    /**
-     * Embed the logo as a data URI instead of linking public_path(): most inbox
-     * clients render it fine and, unlike an external URL, it never depends on
-     * the app being reachable when the message is opened.
-     */
-    private function logoDataUri(): string
-    {
-        $path = public_path('images/brand/logo-white.png');
-
-        return 'data:image/png;base64,'.base64_encode(file_get_contents($path));
     }
 
     public function attachments(): array

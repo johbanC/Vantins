@@ -17,7 +17,7 @@
 
                     <tr>
                         <td style="background-color:#0A2452; padding:28px 36px;">
-                            <img src="{{ $logo }}" alt="Vantins Insurance Agency" height="34" style="display:block; border:0;">
+                            <img src="{{ $message->embed(public_path('images/brand/logo-white.png')) }}" alt="Vantins Insurance Agency" height="34" style="display:block; border:0;">
                         </td>
                     </tr>
                     <tr>
