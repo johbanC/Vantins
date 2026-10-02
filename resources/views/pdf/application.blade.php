@@ -27,6 +27,9 @@
 </style>
 </head>
 <body>
+@if ($application->is_demo)
+    <div style="position:fixed;top:42%;left:0;width:100%;text-align:center;font-size:110px;font-weight:bold;letter-spacing:12px;color:#000;opacity:.07;transform:rotate(-30deg);">{{ __('app.demo_badge') }}</div>
+@endif
 <div class="wrap">
     <table class="head" width="100%"><tr>
         <td><img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/brand/logo-dark.png'))) }}" style="height:40px"></td>
@@ -40,7 +43,7 @@
     <table width="100%"><tr>
         <td style="font-size:14px;font-weight:bold;color:#0A2452;">{{ __('app.application_title') }}</td>
         <td style="text-align:right;font-size:9px;color:#6b7280;">
-            Ref: {{ $application->verification_code }} &nbsp;&middot;&nbsp; {{ $application->created_at->format('M d, Y') }} &nbsp;&middot;&nbsp; {{ strtoupper($application->status) }}
+            {{ __('app.ref') }}: {{ $application->verification_code }} &nbsp;&middot;&nbsp; {{ \App\Support\Format::date($application->created_at) }} &nbsp;&middot;&nbsp; {{ mb_strtoupper(__('app.status_names.'.$application->status)) }}
         </td>
     </tr></table>
 
@@ -49,18 +52,26 @@
         <tr><td class="lbl">{{ __('app.company_name') }}</td><td>{{ $application->company_name }}</td><td class="lbl">{{ __('app.company_representative') }}</td><td>{{ $application->company_representative }}</td></tr>
         <tr><td class="lbl">{{ __('app.phone_number') }}</td><td>{{ $application->phone_number }}</td><td class="lbl">{{ __('app.email') }}</td><td>{{ $application->email }}</td></tr>
         <tr><td class="lbl">{{ __('app.mailing_address') }}</td><td>{{ $application->mailing_address }}</td><td class="lbl">{{ __('app.parking_address') }}</td><td>{{ $application->parking_address }}</td></tr>
-        <tr><td class="lbl">{{ __('app.effective_date') }}</td><td>{{ optional($application->effective_date)->format('M d, Y') }}</td><td class="lbl">{{ __('app.us_dot_number') }}</td><td>{{ $application->us_dot_number }}</td></tr>
+        <tr><td class="lbl">{{ __('app.effective_date') }}</td><td>{{ \App\Support\Format::date($application->effective_date) }}</td><td class="lbl">{{ __('app.us_dot_number') }}</td><td>{{ $application->us_dot_number }}</td></tr>
         <tr><td class="lbl">{{ __('app.radius_of_operations') }}</td><td>{{ $application->radius_of_operations }}</td><td class="lbl">{{ __('app.years_in_business') }}</td><td>{{ $application->years_in_business }}</td></tr>
         <tr><td class="lbl">{{ __('app.power_units') }}</td><td>{{ $application->power_units }}</td><td class="lbl">{{ __('app.commodities_hauled') }}</td><td>{{ $application->commodities_hauled }}</td></tr>
     </table>
 
-    @foreach (['drivers' => ['driver_name','dob','cdl_number','state_issued','experience','date_of_hire'], 'vehicles' => ['year','make','vin','body_type','stated_value'], 'trailers' => ['year','make','vin','body_type','stated_value']] as $rel => $cols)
+    @foreach (['drivers' => ['driver_name','dob','cdl_number','state_issued','cdl_issue_date','cdl_expiry_date','experience','date_of_hire'], 'vehicles' => ['year','make','vin','body_type','garaging_zip','stated_value','physical_damage'], 'trailers' => ['year','make','vin','body_type','stated_value']] as $rel => $cols)
         @if ($application->$rel->count())
             <h2>{{ __('app.'.$rel.'_schedule') }}</h2>
-            <table class="data">
-                <tr>@foreach ($cols as $c)<th>{{ __('app.'.$c) }}</th>@endforeach</tr>
+            <table class="data" style="font-size:{{ count($cols) > 7 ? '9' : '11' }}px">
+                <tr>@foreach ($cols as $c)<th>{{ __('app.'.($c === 'physical_damage' ? 'has_physical_damage' : $c)) }}</th>@endforeach</tr>
                 @foreach ($application->$rel as $row)
-                    <tr>@foreach ($cols as $c)<td>{{ $row->$c }}</td>@endforeach</tr>
+                    <tr>@foreach ($cols as $c)
+                        <td>
+                            @if ($c === 'stated_value'){{ \App\Support\Format::money($row->$c) }}
+                            @elseif ($c === 'physical_damage')
+                                @if ($row->has_physical_damage){{ \App\Support\Format::money($row->physical_damage_value) }} / {{ __('app.deductible') }} {{ \App\Support\Format::money($row->physical_damage_deductible) }}@else{{ __('app.no') }}@endif
+                            @elseif (in_array($c, ['dob','date_of_hire','cdl_issue_date','cdl_expiry_date'])){{ \App\Support\Format::date($row->$c) }}
+                            @else{{ $row->$c }}@endif
+                        </td>
+                    @endforeach</tr>
                 @endforeach
             </table>
         @endif
@@ -79,12 +90,12 @@
     <h2>{{ __('app.finance_proposal') }}</h2>
     <table class="data kv">
         <tr>
-            <td class="lbl">{{ __('app.down_payment') }}</td><td>{{ $application->down_payment ? '$'.number_format($application->down_payment, 2) : '—' }}</td>
+            <td class="lbl">{{ __('app.down_payment') }}</td><td>{{ \App\Support\Format::money($application->down_payment) }}</td>
             <td class="lbl">{{ __('app.number_of_payments') }}</td><td>{{ $application->number_of_payments ?: '—' }}</td>
         </tr>
         <tr>
-            <td class="lbl">{{ __('app.monthly_payment') }}</td><td>{{ $application->monthly_payment ? '$'.number_format($application->monthly_payment, 2) : '—' }}</td>
-            <td class="lbl">{{ __('app.total_policy_premium') }}</td><td><strong>{{ $application->total_policy_premium ? '$'.number_format($application->total_policy_premium, 2) : '—' }}</strong></td>
+            <td class="lbl">{{ __('app.monthly_payment') }}</td><td>{{ \App\Support\Format::money($application->monthly_payment) }}</td>
+            <td class="lbl">{{ __('app.total_policy_premium') }}</td><td><strong>{{ \App\Support\Format::money($application->total_policy_premium) }}</strong></td>
         </tr>
     </table>
 
@@ -101,11 +112,11 @@
         <td width="55%">
             @if ($signature)<img src="{{ $signature }}" class="sigimg" alt="signature">@else<div class="sigimg"></div>@endif
             <div style="font-size:9px;color:#6b7280;">{{ __('app.signer_name') }}: {{ $application->signer_name }}</div>
-            <div style="font-size:9px;color:#6b7280;">Date: {{ optional($application->disclosure_accepted_at)->format('M d, Y') }}</div>
+            <div style="font-size:9px;color:#6b7280;">{{ __('app.date') }}: {{ \App\Support\Format::date($application->disclosure_accepted_at) }}</div>
         </td>
         <td width="45%" class="qrbox">
             <img src="{{ $qr }}" alt="QR"><br>
-            To verify the validity of this document, scan this QR code.
+            {{ __('app.qr_caption') }}
         </td>
     </tr></table>
 

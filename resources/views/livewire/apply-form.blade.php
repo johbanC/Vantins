@@ -14,6 +14,10 @@
         <button wire:click="switchLocale('es')" class="rounded px-2 py-1 {{ app()->getLocale() === 'es' ? 'bg-brand text-navy-dark' : 'bg-white/10' }}">ES</button>
     </div>
 
+    @if ($application->is_demo)
+        <p class="rounded-lg border border-brand/40 bg-brand/10 px-4 py-2 text-center text-xs font-semibold uppercase tracking-wide text-brand">{{ __('app.demo_notice') }}</p>
+    @endif
+
     {{-- ===== DONE: signed ===== --}}
     @if ($done === 'signed')
         <div class="{{ $card }} py-10 text-center">
@@ -47,7 +51,7 @@
                 <p class="font-semibold text-brand">{{ __('app.already_signed_title') }}</p>
                 <p class="mt-1 text-white/70">
                     {{ __('app.signer_name') }}: {{ $application->signer_name }} &nbsp;·&nbsp;
-                    {{ optional($application->disclosure_accepted_at)->format('m/d/Y H:i') }}
+                    {{ \App\Support\Format::dateTime($application->disclosure_accepted_at) }}
                 </p>
             </div>
             @include('livewire.partials.apply-review')
@@ -79,7 +83,8 @@
                     ] as $field => $type)
                         <div>
                             <label class="{{ $label }}">{{ __('app.'.$field) }}</label>
-                            <input type="{{ $type }}" wire:model="form.{{ $field }}" class="{{ $input }}">
+                            <input type="{{ $type }}" wire:model="form.{{ $field }}" class="{{ $input }} @error('form.'.$field) border-red-400 @enderror">
+                            @error('form.'.$field) <p class="mt-1 text-xs text-red-300">{{ $message }}</p> @enderror
                         </div>
                     @endforeach
                     <div class="sm:col-span-2">
@@ -99,22 +104,71 @@
                                     <span class="text-xs text-white/50">#{{ $i + 1 }}</span>
                                     <button wire:click="removeRow('{{ $col }}', {{ $i }})" class="text-xs text-red-300 hover:text-red-200">{{ __('app.remove') }}</button>
                                 </div>
+                                @php
+                                    // field => [type, extra css, extra attributes]
+                                    $spec = [
+                                        'drivers' => [
+                                            'driver_name' => ['text', 'sm:col-span-2', ''],
+                                            'dob' => ['date', '', ''],
+                                            'cdl_number' => ['text', '', 'maxlength="25"'],
+                                            'state_issued' => ['text', '', 'maxlength="40"'],
+                                            'cdl_issue_date' => ['date', '', ''],
+                                            'cdl_expiry_date' => ['date', '', ''],
+                                            'experience' => ['text', '', 'maxlength="60"'],
+                                            'date_of_hire' => ['date', '', ''],
+                                        ],
+                                        'vehicles' => [
+                                            'year' => ['text', '', 'maxlength="4" inputmode="numeric"'],
+                                            'make' => ['text', '', 'maxlength="120"'],
+                                            'vin' => ['text', '', 'maxlength="17" autocapitalize="characters"'],
+                                            'body_type' => ['text', '', 'maxlength="120"'],
+                                            'garaging_zip' => ['text', '', 'maxlength="10" inputmode="numeric"'],
+                                            'stated_value' => ['number', '', 'step="0.01"'],
+                                        ],
+                                        'trailers' => [
+                                            'year' => ['text', '', 'maxlength="4" inputmode="numeric"'],
+                                            'make' => ['text', '', 'maxlength="120"'],
+                                            'vin' => ['text', '', 'maxlength="17" autocapitalize="characters"'],
+                                            'body_type' => ['text', '', 'maxlength="120"'],
+                                            'stated_value' => ['number', '', 'step="0.01"'],
+                                        ],
+                                    ][$col];
+                                    $warnings = $col === 'drivers'
+                                        ? \App\Support\DataQuality::driverWarnings($row, $application->effective_date)
+                                        : \App\Support\DataQuality::vehicleWarnings($row);
+                                @endphp
                                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                                    @if ($col === 'drivers')
-                                        <div class="sm:col-span-2"><label class="{{ $label }}">{{ __('app.driver_name') }}</label><input wire:model="drivers.{{ $i }}.driver_name" class="{{ $input }}"></div>
-                                        <div><label class="{{ $label }}">{{ __('app.dob') }}</label><input type="date" wire:model="drivers.{{ $i }}.dob" class="{{ $input }}"></div>
-                                        <div><label class="{{ $label }}">{{ __('app.cdl_number') }}</label><input wire:model="drivers.{{ $i }}.cdl_number" class="{{ $input }}"></div>
-                                        <div><label class="{{ $label }}">{{ __('app.state_issued') }}</label><input maxlength="40" wire:model="drivers.{{ $i }}.state_issued" class="{{ $input }}"></div>
-                                        <div><label class="{{ $label }}">{{ __('app.experience') }}</label><input maxlength="60" wire:model="drivers.{{ $i }}.experience" class="{{ $input }}"></div>
-                                        <div><label class="{{ $label }}">{{ __('app.date_of_hire') }}</label><input type="date" wire:model="drivers.{{ $i }}.date_of_hire" class="{{ $input }}"></div>
-                                    @else
-                                        <div><label class="{{ $label }}">{{ __('app.year') }}</label><input maxlength="4" inputmode="numeric" wire:model="{{ $col }}.{{ $i }}.year" class="{{ $input }}"></div>
-                                        <div><label class="{{ $label }}">{{ __('app.make') }}</label><input maxlength="120" wire:model="{{ $col }}.{{ $i }}.make" class="{{ $input }}"></div>
-                                        <div><label class="{{ $label }}">{{ __('app.vin') }}</label><input maxlength="17" wire:model="{{ $col }}.{{ $i }}.vin" class="{{ $input }}"></div>
-                                        <div><label class="{{ $label }}">{{ __('app.body_type') }}</label><input maxlength="120" wire:model="{{ $col }}.{{ $i }}.body_type" class="{{ $input }}"></div>
-                                        <div><label class="{{ $label }}">{{ __('app.stated_value') }}</label><input type="number" wire:model="{{ $col }}.{{ $i }}.stated_value" class="{{ $input }}"></div>
+                                    @foreach ($spec as $f => [$type, $span, $attrs])
+                                        <div class="{{ $span }}">
+                                            <label class="{{ $label }}">{{ __('app.'.$f) }}</label>
+                                            <input type="{{ $type }}" {!! $attrs !!} wire:model.blur="{{ $col }}.{{ $i }}.{{ $f }}" class="{{ $input }} @error($col.'.'.$i.'.'.$f) border-red-400 @enderror">
+                                            @error($col.'.'.$i.'.'.$f) <p class="mt-1 text-xs text-red-300">{{ $message }}</p> @enderror
+                                        </div>
+                                    @endforeach
+
+                                    @if ($col === 'vehicles')
+                                        <div class="sm:col-span-3 rounded-lg border border-white/10 p-3">
+                                            <label class="flex items-center gap-2 text-sm">
+                                                <input type="checkbox" wire:model.live="vehicles.{{ $i }}.has_physical_damage" class="h-4 w-4 rounded border-white/30 bg-white/10 text-brand">
+                                                {{ __('app.has_physical_damage') }}
+                                            </label>
+                                            @if (! empty($row['has_physical_damage']))
+                                                <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                                    @foreach (['physical_damage_value', 'physical_damage_deductible'] as $f)
+                                                        <div>
+                                                            <label class="{{ $label }}">{{ __('app.'.$f) }}</label>
+                                                            <input type="number" step="0.01" wire:model.blur="vehicles.{{ $i }}.{{ $f }}" class="{{ $input }} @error('vehicles.'.$i.'.'.$f) border-red-400 @enderror">
+                                                            @error('vehicles.'.$i.'.'.$f) <p class="mt-1 text-xs text-red-300">{{ $message }}</p> @enderror
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </div>
                                     @endif
                                 </div>
+                                @foreach ($warnings as $warning)
+                                    <p class="mt-3 rounded-lg border border-brand/40 bg-brand/10 px-3 py-2 text-xs text-brand">&#9888; {{ $warning }}</p>
+                                @endforeach
                             </div>
                         @empty
                             <p class="text-sm text-white/40">{{ __('app.none_yet') }}</p>
@@ -155,9 +209,13 @@
                 @endphp
                 <h2 class="mb-5 text-lg font-semibold">{{ __('app.finance_proposal') }}</h2>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <div><label class="{{ $label }}">{{ __('app.down_payment') }}</label><input type="number" step="0.01" wire:model="form.down_payment" class="{{ $input }}"></div>
-                    <div><label class="{{ $label }}">{{ __('app.number_of_payments') }}</label><input type="number" wire:model="form.number_of_payments" class="{{ $input }}"></div>
-                    <div><label class="{{ $label }}">{{ __('app.monthly_payment') }}</label><input type="number" step="0.01" wire:model="form.monthly_payment" class="{{ $input }}"></div>
+                    @foreach (['down_payment' => '0.01', 'number_of_payments' => '1', 'monthly_payment' => '0.01'] as $f => $stepAttr)
+                        <div>
+                            <label class="{{ $label }}">{{ __('app.'.$f) }}</label>
+                            <input type="number" step="{{ $stepAttr }}" wire:model="form.{{ $f }}" class="{{ $input }} @error('form.'.$f) border-red-400 @enderror">
+                            @error('form.'.$f) <p class="mt-1 text-xs text-red-300">{{ $message }}</p> @enderror
+                        </div>
+                    @endforeach
                 </div>
                 <div class="mt-4 border-t border-white/10 pt-4 text-sm">
                     <div class="flex justify-between text-white/60">
@@ -177,6 +235,10 @@
                 </div>
             @endif
         </div>
+
+        @error('summary')
+            <p class="rounded-lg border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">{{ $message }}</p>
+        @enderror
 
         <div class="flex items-center justify-between">
             <button wire:click="back" @class([$btnGhost, 'invisible' => $step === 1])>{{ __('app.back') }}</button>

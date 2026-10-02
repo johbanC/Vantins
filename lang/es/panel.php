@@ -36,6 +36,7 @@ return [
     ],
 
     'field' => [
+        'is_demo' => 'DEMO (registro de prueba)',
         'company_name' => 'Nombre de la empresa',
         'company_representative' => 'Representante de la empresa',
         'phone_number' => 'Número de teléfono',

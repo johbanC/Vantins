@@ -12,6 +12,8 @@ class Driver extends Model
     protected $casts = [
         'dob' => 'date',
         'date_of_hire' => 'date',
+        'cdl_issue_date' => 'date',
+        'cdl_expiry_date' => 'date',
     ];
 
     public function application(): BelongsTo

@@ -11,6 +11,9 @@ class Vehicle extends Model
 
     protected $casts = [
         'stated_value' => 'decimal:2',
+        'has_physical_damage' => 'boolean',
+        'physical_damage_value' => 'decimal:2',
+        'physical_damage_deductible' => 'decimal:2',
     ];
 
     public function application(): BelongsTo

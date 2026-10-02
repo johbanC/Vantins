@@ -5,7 +5,7 @@
     $kvValue = 'text-sm text-white';
     $th = 'px-2 py-1 text-left text-xs font-medium uppercase tracking-wide text-white/40';
     $td = 'px-2 py-1 text-sm text-white align-top';
-    $money = fn ($v) => $v ? '$'.number_format((float) $v, 2) : '—';
+    $money = fn ($v) => \App\Support\Format::money($v);
 @endphp
 
 <div class="space-y-1">
@@ -24,7 +24,7 @@
         @endforeach
         <div>
             <div class="{{ $kvLabel }}">{{ __('app.effective_date') }}</div>
-            <div class="{{ $kvValue }}">{{ optional($application->effective_date)->format('m/d/Y') ?: '—' }}</div>
+            <div class="{{ $kvValue }}">{{ \App\Support\Format::date($application->effective_date) }}</div>
         </div>
         <div class="sm:col-span-2">
             <div class="{{ $kvLabel }}">{{ __('app.commodities_hauled') }}</div>
@@ -34,8 +34,8 @@
 
     {{-- Schedules --}}
     @foreach ([
-        'drivers' => ['driver_name','dob','cdl_number','state_issued','experience','date_of_hire'],
-        'vehicles' => ['year','make','vin','body_type','stated_value'],
+        'drivers' => ['driver_name','dob','cdl_number','state_issued','cdl_issue_date','cdl_expiry_date','experience','date_of_hire'],
+        'vehicles' => ['year','make','vin','body_type','garaging_zip','stated_value','physical_damage'],
         'trailers' => ['year','make','vin','body_type','stated_value'],
     ] as $rel => $cols)
         <h3 class="{{ $sectionTitle }}">{{ __('app.'.$rel.'_schedule') }}</h3>
@@ -44,14 +44,16 @@
         @else
             <div class="overflow-x-auto rounded-lg border border-white/10">
                 <table class="min-w-full divide-y divide-white/10">
-                    <thead><tr>@foreach ($cols as $c)<th class="{{ $th }}">{{ __('app.'.$c) }}</th>@endforeach</tr></thead>
+                    <thead><tr>@foreach ($cols as $c)<th class="{{ $th }}">{{ __('app.'.($c === 'physical_damage' ? 'has_physical_damage' : $c)) }}</th>@endforeach</tr></thead>
                     <tbody class="divide-y divide-white/5">
                         @foreach ($application->$rel as $row)
                             <tr>
                                 @foreach ($cols as $c)
                                     <td class="{{ $td }}">
                                         @if ($c === 'stated_value'){{ $money($row->$c) }}
-                                        @elseif (in_array($c, ['dob','date_of_hire'])){{ optional($row->$c)->format('m/d/Y') ?: '—' }}
+                                        @elseif ($c === 'physical_damage')
+                                            @if ($row->has_physical_damage){{ $money($row->physical_damage_value) }} / {{ __('app.deductible') }} {{ $money($row->physical_damage_deductible) }}@else{{ __('app.no') }}@endif
+                                        @elseif (in_array($c, ['dob','date_of_hire','cdl_issue_date','cdl_expiry_date'])){{ \App\Support\Format::date($row->$c) }}
                                         @else{{ $row->$c ?: '—' }}@endif
                                     </td>
                                 @endforeach

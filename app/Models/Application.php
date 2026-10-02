@@ -28,6 +28,7 @@ class Application extends Model
 
     protected $casts = [
         'effective_date' => 'date',
+        'is_demo' => 'boolean',
         'total_policy_premium' => 'decimal:2',
         'down_payment' => 'decimal:2',
         'number_of_payments' => 'integer',

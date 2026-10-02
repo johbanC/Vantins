@@ -91,21 +91,21 @@ class ApplyFormTest extends TestCase
         $this->get("/apply/{$app->token}")->assertSee(__('app.already_signed_title'));
     }
 
-    public function test_advisor_oversized_row_values_are_truncated(): void
+    public function test_advisor_oversized_row_values_are_rejected_not_saved(): void
     {
         $app = Application::create(['company_name' => 'Acme']);
 
         Livewire::actingAs($this->staff())
             ->test(ApplyForm::class, ['token' => $app->token])
+            ->set('step', 3)
             ->set('vehicles', [[
                 'year' => str_repeat('X', 200),
                 'vin' => str_repeat('Y', 200),
             ]])
             ->call('next')
-            ->assertHasNoErrors();
+            ->assertHasErrors(['vehicles.0.year', 'vehicles.0.vin'])
+            ->assertSet('step', 3);
 
-        $vehicle = $app->vehicles()->first();
-        $this->assertLessThanOrEqual(20, mb_strlen($vehicle->year));
-        $this->assertLessThanOrEqual(64, mb_strlen($vehicle->vin));
+        $this->assertSame(0, $app->vehicles()->count());
     }
 }

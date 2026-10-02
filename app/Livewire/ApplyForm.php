@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Application;
+use App\Support\DataQuality;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
@@ -49,6 +50,7 @@ class ApplyForm extends Component
     protected const MAX_LENGTHS = [
         'year' => 20, 'vin' => 64, 'make' => 190, 'body_type' => 190,
         'state_issued' => 40, 'experience' => 60, 'cdl_number' => 190,
+        'garaging_zip' => 10,
         'driver_name' => 190, 'coverage' => 190, 'limit_amount' => 190, 'deductible' => 190,
     ];
 
@@ -69,12 +71,30 @@ class ApplyForm extends Component
         }
         $this->form['effective_date'] = optional($this->application->effective_date)->format('Y-m-d');
 
-        $this->drivers = $this->application->drivers->map->only(['driver_name', 'dob', 'cdl_number', 'state_issued', 'experience', 'date_of_hire'])->toArray();
-        $this->vehicles = $this->application->vehicles->map->only(['year', 'make', 'vin', 'body_type', 'stated_value'])->toArray();
-        $this->trailers = $this->application->trailers->map->only(['year', 'make', 'vin', 'body_type', 'stated_value'])->toArray();
+        foreach (['drivers', 'vehicles', 'trailers'] as $rel) {
+            $this->{$rel} = $this->application->{$rel}
+                ->map(fn ($row) => $this->rowToArray($row, DataQuality::ROW_FIELDS[$rel]))
+                ->all();
+        }
         $this->coverages = $this->application->coverages->map->only(['coverage', 'limit_amount', 'deductible'])->toArray();
 
         $this->signerName = $this->application->signer_name ?? '';
+    }
+
+    /** Livewire skips mount() on every later request: re-apply the chosen language each time. */
+    public function hydrate(): void
+    {
+        App::setLocale($this->application->locale);
+    }
+
+    /** Plain, form-friendly values: dates as Y-m-d, no objects in the Livewire state. */
+    protected function rowToArray($row, array $fields): array
+    {
+        return collect($fields)->mapWithKeys(function ($f) use ($row) {
+            $value = $row->{$f};
+
+            return [$f => $value instanceof \DateTimeInterface ? $value->format('Y-m-d') : $value];
+        })->all();
     }
 
     public function switchLocale(string $locale): void
@@ -109,9 +129,9 @@ class ApplyForm extends Component
 
         $this->application->fill($data)->save();
 
-        $this->syncRows('drivers', ['driver_name', 'dob', 'cdl_number', 'state_issued', 'experience', 'date_of_hire']);
-        $this->syncRows('vehicles', ['year', 'make', 'vin', 'body_type', 'stated_value']);
-        $this->syncRows('trailers', ['year', 'make', 'vin', 'body_type', 'stated_value']);
+        $this->syncRows('drivers', DataQuality::ROW_FIELDS['drivers']);
+        $this->syncRows('vehicles', DataQuality::ROW_FIELDS['vehicles']);
+        $this->syncRows('trailers', DataQuality::ROW_FIELDS['trailers']);
         $this->syncRows('coverages', ['coverage', 'limit_amount', 'deductible']);
 
         $this->application->refresh();
@@ -124,6 +144,9 @@ class ApplyForm extends Component
             $payload = collect($fields)
                 ->mapWithKeys(function ($f) use ($row) {
                     $value = $row[$f] ?? null;
+                    if ($f === 'has_physical_damage') {
+                        return [$f => filter_var($value, FILTER_VALIDATE_BOOLEAN)];
+                    }
                     if ($value === '' || $value === null) {
                         return [$f => null];
                     }
@@ -142,21 +165,80 @@ class ApplyForm extends Component
         }
     }
 
+    /** Hard validation of what the advisor typed in one step. Soft warnings never block. */
+    protected function validateStep(int $step): bool
+    {
+        $errors = match ($step) {
+            1, 6 => DataQuality::validateApplicant($this->form),
+            2 => DataQuality::validateRows('drivers', $this->drivers),
+            3 => DataQuality::validateRows('vehicles', $this->vehicles),
+            4 => DataQuality::validateRows('trailers', $this->trailers),
+            default => [],
+        };
+
+        return $this->report($errors);
+    }
+
+    /** Validate everything; on failure jump to the first step that has an error. */
+    protected function validateAll(): bool
+    {
+        foreach ([1, 2, 3, 4, 6] as $step) {
+            if (! $this->validateStep($step)) {
+                $this->step = $step;
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    protected function report(array $errors): bool
+    {
+        $this->resetErrorBag();
+
+        foreach ($errors as $key => $message) {
+            $this->addError($key, $message);
+        }
+        if ($errors) {
+            $this->addError('summary', __('app.fix_errors'));
+        }
+
+        return $errors === [];
+    }
+
     public function next(): void
     {
+        abort_unless($this->editable, 403);
+
+        if (! $this->validateStep($this->step)) {
+            return;
+        }
+
         $this->persist();
         $this->step = min($this->step + 1, $this->totalSteps);
     }
 
     public function back(): void
     {
-        $this->persist();
+        abort_unless($this->editable, 403);
+
+        // Going back must never trap the advisor: save only what is valid.
+        if ($this->validateStep($this->step)) {
+            $this->persist();
+        }
         $this->step = max($this->step - 1, 1);
     }
 
     /** Advisor: store what has been entered without a signature yet. */
     public function saveDraft(): void
     {
+        abort_unless($this->editable, 403);
+
+        if (! $this->validateAll()) {
+            return;
+        }
+
         $this->persist();
         $this->done = 'saved';
     }
@@ -173,6 +255,9 @@ class ApplyForm extends Component
         ]);
 
         if ($this->editable) {
+            if (! $this->validateAll()) {
+                return;
+            }
             $this->persist();
         }
 

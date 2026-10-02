@@ -36,6 +36,7 @@ return [
     ],
 
     'field' => [
+        'is_demo' => 'DEMO (test record)',
         'company_name' => 'Company name',
         'company_representative' => 'Company representative',
         'phone_number' => 'Phone number',

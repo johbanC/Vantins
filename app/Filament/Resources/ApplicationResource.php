@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ApplicationResource\Pages;
 use App\Filament\Resources\ApplicationResource\RelationManagers;
 use App\Models\Application;
+use App\Support\Format;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -62,6 +63,10 @@ class ApplicationResource extends Resource
                 ->columns(2)
                 ->hiddenOn('create')
                 ->schema([
+                    Forms\Components\Toggle::make('is_demo')
+                        ->label(__('panel.field.is_demo'))
+                        ->visible(fn () => auth()->user()?->isAdmin() ?? false)
+                        ->columnSpanFull(),
                     Forms\Components\TextInput::make('company_name')->label(__('panel.field.company_name')),
                     Forms\Components\TextInput::make('company_representative')->label(__('panel.field.company_representative')),
                     Forms\Components\TextInput::make('phone_number')->label(__('panel.field.phone_number'))->tel(),
@@ -131,7 +136,7 @@ class ApplicationResource extends Resource
                         ->content(fn (?Application $record) => $record?->signer_name ?: '—'),
                     Forms\Components\Placeholder::make('disclosure_accepted_at')
                         ->label(__('panel.field.disclosure_accepted_at'))
-                        ->content(fn (?Application $record) => optional($record?->disclosure_accepted_at)?->format('Y-m-d H:i') ?: '—'),
+                        ->content(fn (?Application $record) => Format::dateTime($record?->disclosure_accepted_at)),
                     Forms\Components\Placeholder::make('signature')
                         ->label(__('panel.field.signature'))
                         ->columnSpanFull()
@@ -162,6 +167,11 @@ class ApplicationResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->description(fn (Application $r) => $r->company_representative),
+                Tables\Columns\TextColumn::make('is_demo')
+                    ->label('')
+                    ->badge()
+                    ->color('warning')
+                    ->state(fn (Application $r) => $r->is_demo ? __('app.demo_badge') : null),
                 Tables\Columns\TextColumn::make('status')
                     ->label(__('panel.status.label'))
                     ->badge()
@@ -188,6 +198,8 @@ class ApplicationResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label(__('panel.status.label'))
                     ->options(static::statusOptions()),
+                Tables\Filters\TernaryFilter::make('is_demo')
+                    ->label(__('panel.field.is_demo')),
             ])
             ->actions([
                 Tables\Actions\Action::make('fill')
