@@ -13,7 +13,7 @@ class CreateQuote extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         // Nobody quotes on an application they may not change.
-        abort_unless(auth()->user()->can('update', Application::findOrFail($data['application_id'])), 403);
+        abort_unless(auth()->user()->can('manage', Application::findOrFail($data['application_id'])), 403);
 
         $data['stage'] = 'lead';
         $data['version'] = 1;

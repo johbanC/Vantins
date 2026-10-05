@@ -10,6 +10,7 @@ use App\Models\Client;
 use App\Support\Format;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -177,6 +178,115 @@ class ApplicationResource extends Resource
         ]);
     }
 
+    // ---------------------------------------------------------------- actions -------------
+
+    public static function changeStatusAction(string $actionClass = Tables\Actions\Action::class)
+    {
+        return $actionClass::make('changeStatus')
+            ->label(__('panel.action.change_status'))
+            ->icon('heroicon-o-arrow-path')
+            ->color('gray')
+            ->visible(fn (Application $record) => auth()->user()->can('manage', $record))
+            ->form([
+                Forms\Components\Select::make('status')
+                    ->label(__('panel.status.label'))
+                    ->options(static::statusOptions())
+                    ->default(fn (Application $record) => $record->status)
+                    ->required()
+                    ->native(false),
+            ])
+            ->action(fn (Application $record, array $data) => $record->markStatus($data['status']));
+    }
+
+    /** The client's link with its state, deadline and PIN. */
+    public static function copyLinkAction(string $actionClass = Tables\Actions\Action::class)
+    {
+        return $actionClass::make('copyLink')
+            ->label(__('panel.action.client_link'))
+            ->icon('heroicon-o-link')
+            ->color('gray')
+            ->visible(fn (Application $record) => auth()->user()->can('manage', $record))
+            ->modalHeading(__('panel.action.client_link_heading'))
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel(__('filament-actions::modal.actions.cancel.label'))
+            ->modalContent(fn (Application $record) => view('filament.application-link', [
+                'url' => route('apply.show', $record->token),
+                'application' => $record,
+            ]));
+    }
+
+    public static function revokeLinkAction(string $actionClass = Tables\Actions\Action::class)
+    {
+        return $actionClass::make('revokeLink')
+            ->label(__('panel.link.revoke'))
+            ->icon('heroicon-o-no-symbol')
+            ->color('danger')
+            ->requiresConfirmation()
+            ->modalDescription(__('panel.link.revoke_confirm'))
+            ->visible(fn (Application $record) => auth()->user()->can('manage', $record) && $record->linkStatus() === 'active')
+            ->action(function (Application $record) {
+                $record->revokeLink();
+                Notification::make()->success()->title(__('panel.link.revoke_done'))->send();
+            });
+    }
+
+    /** New address, new PIN, new deadline: the old ones stop working. */
+    public static function renewLinkAction(string $actionClass = Tables\Actions\Action::class)
+    {
+        return $actionClass::make('renewLink')
+            ->label(__('panel.link.renew'))
+            ->icon('heroicon-o-arrow-path-rounded-square')
+            ->color('gray')
+            ->requiresConfirmation()
+            ->modalDescription(__('panel.link.renew_confirm'))
+            ->visible(fn (Application $record) => auth()->user()->can('manage', $record) && ! $record->isSigned() && ! $record->isCancelled())
+            ->action(function (Application $record) {
+                $record->renewLink();
+                Notification::make()->success()->title(__('panel.link.renew_done'))->send();
+            });
+    }
+
+    public static function pdfAction(string $actionClass = Tables\Actions\Action::class)
+    {
+        return $actionClass::make('pdf')
+            ->label(__('panel.action.pdf'))
+            ->icon('heroicon-o-document-arrow-down')
+            ->color('primary')
+            ->modalHeading(__('panel.action.pdf_heading'))
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel(__('filament-actions::modal.actions.cancel.label'))
+            ->modalContent(fn (Application $record) => view('filament.application-pdf', [
+                'en' => route('applications.pdf', ['token' => $record->token, 'locale' => 'en']),
+                'es' => route('applications.pdf', ['token' => $record->token, 'locale' => 'es']),
+                'signed' => $record->isSigned() ? route('applications.signed', $record->token) : null,
+            ]));
+    }
+
+    /** A signed application is never edited: it is corrected by making a new version, with a reason. */
+    public static function revisionAction(string $actionClass = Tables\Actions\Action::class)
+    {
+        return $actionClass::make('revision')
+            ->label(__('panel.link.revision'))
+            ->icon('heroicon-o-document-duplicate')
+            ->color('warning')
+            ->modalDescription(__('panel.link.revision_hint'))
+            ->visible(fn (Application $record) => auth()->user()->can('revise', $record))
+            ->form([
+                Forms\Components\Textarea::make('reason')
+                    ->label(__('panel.link.revision_reason'))
+                    ->required()
+                    ->rows(3)
+                    ->maxLength(2000),
+            ])
+            ->action(function (Application $record, array $data) {
+                $new = $record->createRevision($data['reason']);
+
+                Notification::make()->success()->title(__('panel.link.revision_done', ['version' => $new->revision]))->send();
+
+                return redirect(static::getUrl('edit', ['record' => $new]));
+            });
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -205,6 +315,21 @@ class ApplicationResource extends Resource
                         default => 'gray',
                     })
                     ->sortable(),
+                Tables\Columns\TextColumn::make('revision')
+                    ->label(__('panel.link.version'))
+                    ->badge()
+                    ->color(fn (Application $r) => $r->isSuperseded() ? 'gray' : 'primary')
+                    ->formatStateUsing(fn ($state, Application $r) => 'v'.$state.($r->isSuperseded() ? ' · '.__('panel.link.replaced') : ''))
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('link_status')
+                    ->label(__('panel.link.column'))
+                    ->badge()
+                    ->state(fn (Application $r) => $r->linkStatus())
+                    ->color(fn (string $state) => match ($state) {
+                        'active' => 'success', 'completed' => 'info', default => 'danger'
+                    })
+                    ->formatStateUsing(fn (string $state) => __('panel.link.states.'.$state))
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('creator.name')->label(__('panel.field.created_by'))->toggleable(),
                 Tables\Columns\TextColumn::make('email')->label(__('panel.field.email'))->searchable()->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('us_dot_number')->label(__('panel.field.us_dot_number'))->searchable()->toggleable(),
@@ -222,6 +347,14 @@ class ApplicationResource extends Resource
                     ->relationship('creator', 'name')
                     ->searchable()
                     ->preload(),
+                Tables\Filters\TernaryFilter::make('current')
+                    ->label(__('panel.link.current_only'))
+                    ->default(true)
+                    ->queries(
+                        true: fn (Builder $q) => $q->whereNull('superseded_at'),
+                        false: fn (Builder $q) => $q->whereNotNull('superseded_at'),
+                        blank: fn (Builder $q) => $q,
+                    ),
                 Tables\Filters\TernaryFilter::make('is_demo')
                     ->label(__('panel.field.is_demo')),
             ])
@@ -234,43 +367,9 @@ class ApplicationResource extends Resource
                     ->visible(fn (Application $record) => auth()->user()->can('update', $record))
                     ->url(fn (Application $record) => route('apply.show', $record->token))
                     ->openUrlInNewTab(),
-                Tables\Actions\Action::make('changeStatus')
-                    ->label(__('panel.action.change_status'))
-                    ->icon('heroicon-o-arrow-path')
-                    ->color('gray')
-                    ->visible(fn (Application $record) => auth()->user()->can('update', $record))
-                    ->form([
-                        Forms\Components\Select::make('status')
-                            ->label(__('panel.status.label'))
-                            ->options(static::statusOptions())
-                            ->default(fn (Application $record) => $record->status)
-                            ->required()
-                            ->native(false),
-                    ])
-                    ->action(fn (Application $record, array $data) => $record->markStatus($data['status'])),
-                Tables\Actions\Action::make('copyLink')
-                    ->label(__('panel.action.client_link'))
-                    ->icon('heroicon-o-link')
-                    ->color('gray')
-                    ->visible(fn (Application $record) => auth()->user()->can('update', $record))
-                    ->modalHeading(__('panel.action.client_link_heading'))
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel(__('filament-actions::modal.actions.cancel.label'))
-                    ->modalContent(fn (Application $record) => view('filament.application-link', [
-                        'url' => route('apply.show', $record->token),
-                    ])),
-                Tables\Actions\Action::make('pdf')
-                    ->label(__('panel.action.pdf'))
-                    ->icon('heroicon-o-document-arrow-down')
-                    ->color('primary')
-                    ->modalHeading(__('panel.action.pdf_heading'))
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel(__('filament-actions::modal.actions.cancel.label'))
-                    ->modalContent(fn (Application $record) => view('filament.application-pdf', [
-                        'en' => route('applications.pdf', ['token' => $record->token, 'locale' => 'en']),
-                        'es' => route('applications.pdf', ['token' => $record->token, 'locale' => 'es']),
-                        'signed' => $record->isLocked() ? route('applications.signed', $record->token) : null,
-                    ])),
+                static::changeStatusAction(),
+                static::copyLinkAction(),
+                static::pdfAction(),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])

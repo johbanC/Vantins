@@ -31,7 +31,7 @@ class QuotePolicy
     {
         return $user->canWrite()
             && $quote->isCurrent()
-            && $user->can('update', $quote->application);
+            && $user->can('manage', $quote->application);
     }
 
     /** Type the commercial terms: only while it is still a lead. */

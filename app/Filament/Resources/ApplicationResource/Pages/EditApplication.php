@@ -34,6 +34,8 @@ class EditApplication extends EditRecord
                     'es' => route('applications.pdf', ['token' => $this->record->token, 'locale' => 'es']),
                     'signed' => $this->record->isLocked() ? route('applications.signed', $this->record->token) : null,
                 ])),
+            ApplicationResource::renewLinkAction(Actions\Action::class),
+            ApplicationResource::revokeLinkAction(Actions\Action::class),
             Actions\Action::make('changeStatus')
                 ->label(__('panel.action.change_status'))
                 ->icon('heroicon-o-arrow-path')

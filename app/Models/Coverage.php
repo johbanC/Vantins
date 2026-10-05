@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LocksWithSignedApplication;
 use App\Models\Concerns\RecordsActivity;
 use App\Support\Format;
 use Illuminate\Database\Eloquent\Model;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Coverage extends Model
 {
+    use LocksWithSignedApplication;
     use RecordsActivity;
 
     protected $guarded = ['id'];

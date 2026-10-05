@@ -60,7 +60,7 @@ class QuotesRelationManager extends RelationManager
                     ->label(__('panel.quote.new_quote'))
                     ->icon('heroicon-o-plus')
                     ->url(fn () => QuoteResource::getUrl('create').'?application='.$this->getOwnerRecord()->getKey())
-                    ->visible(fn () => auth()->user()->can('create', Quote::class) && auth()->user()->can('update', $this->getOwnerRecord())),
+                    ->visible(fn () => auth()->user()->can('create', Quote::class) && auth()->user()->can('manage', $this->getOwnerRecord())),
             ])
             ->actions([
                 Tables\Actions\Action::make('open')

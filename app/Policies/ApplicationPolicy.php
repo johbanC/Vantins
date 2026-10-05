@@ -6,8 +6,11 @@ use App\Models\Application;
 use App\Models\User;
 
 /**
- * admin: everything. agent: sees applications they created or of their clients, edits only the ones
- * they created. viewer: read-only, sees all.
+ * admin: everything. agent: sees applications they created or of their clients, works only the
+ * ones they created. viewer: read-only, sees all.
+ *
+ * Once the client signs, the data is frozen: nobody "updates" it any more. The owner still
+ * "manages" the application (status, link, quotes, a new version).
  */
 class ApplicationPolicy
 {
@@ -26,9 +29,22 @@ class ApplicationPolicy
         return $user->canWrite();
     }
 
-    public function update(User $user, Application $application): bool
+    /** Work with the application: status, link, quotes, documents, a new version. */
+    public function manage(User $user, Application $application): bool
     {
         return $user->canWrite() && $application->canRevealSensitiveData($user);
+    }
+
+    /** Change its data: only while it is not signed. */
+    public function update(User $user, Application $application): bool
+    {
+        return $this->manage($user, $application) && ! $application->isSigned();
+    }
+
+    /** Correct a signed application by creating a new version of it. */
+    public function revise(User $user, Application $application): bool
+    {
+        return $this->manage($user, $application) && $application->isSigned() && ! $application->isSuperseded();
     }
 
     public function reorder(User $user): bool

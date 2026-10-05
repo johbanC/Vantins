@@ -18,8 +18,31 @@
         <p class="rounded-lg border border-brand/40 bg-brand/10 px-4 py-2 text-center text-xs font-semibold uppercase tracking-wide text-brand">{{ __('app.demo_notice') }}</p>
     @endif
 
+    {{-- ===== The link is not usable (expired / revoked) ===== --}}
+    @if (in_array($access, ['expired', 'revoked'], true))
+        <div class="{{ $card }} py-10 text-center">
+            <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/20 text-2xl text-red-300">&times;</div>
+            <h2 class="text-lg font-semibold">{{ __('app.link_'.$access.'_title') }}</h2>
+            <p class="mx-auto mt-2 max-w-md text-sm text-white/60">{{ __('app.link_'.$access.'_body') }}</p>
+        </div>
+
+    {{-- ===== Driver data sits behind a PIN ===== --}}
+    @elseif ($access === 'pin')
+        <div class="{{ $card }} mx-auto max-w-md text-center">
+            <h2 class="text-lg font-semibold">{{ __('app.pin_title') }}</h2>
+            <p class="mt-2 text-sm text-white/60">{{ __('app.pin_body') }}</p>
+            <form wire:submit="verifyPin" class="mt-5 space-y-3">
+                <input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="12" wire:model="pin" autofocus
+                       class="{{ $input }} text-center text-lg tracking-widest" placeholder="••••••">
+                @if ($pinMessage)
+                    <p class="text-sm text-red-300">{{ $pinMessage }}</p>
+                @endif
+                <button type="submit" class="{{ $btn }} w-full">{{ __('app.pin_submit') }}</button>
+            </form>
+        </div>
+
     {{-- ===== DONE: signed ===== --}}
-    @if ($done === 'signed')
+    @elseif ($done === 'signed')
         <div class="{{ $card }} py-10 text-center">
             <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand text-navy-dark">&check;</div>
             <h2 class="text-lg font-semibold">{{ __('app.thanks_title') }}</h2>
@@ -48,6 +71,9 @@
     {{-- ===== Already signed ===== --}}
     @elseif ($locked)
         <div class="{{ $card }} space-y-6">
+            @if ($application->isSuperseded())
+                <p class="rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-sm text-white/70">{{ __('app.superseded_notice') }}</p>
+            @endif
             <div class="rounded-lg border border-brand/30 bg-brand/10 p-4 text-sm">
                 <p class="font-semibold text-brand">{{ __('app.already_signed_title') }}</p>
                 <p class="mt-1 text-white/70">

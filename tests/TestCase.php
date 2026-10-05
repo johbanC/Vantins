@@ -11,8 +11,9 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        // Signed PDFs, signatures of quotes and quote documents go to the private disk:
-        // tests never write real files there.
+        // Signatures, signed PDFs and quote documents are real files: tests never write them
+        // to the real disks.
         Storage::fake('local');
+        Storage::fake('public');
     }
 }

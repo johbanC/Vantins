@@ -37,7 +37,7 @@ class ClientTest extends TestCase
             'email' => 'Maria@Rodriguez.test', 'phone' => '+1 (754) 290-0308',
             'us_dot_number' => 'DOT 1234567', 'mc_number' => 'MC-998877',
         ]);
-        Client::factory()->create(['company_name' => 'Other Co', 'phone' => '305-111-2222', 'us_dot_number' => '555', 'mc_number' => '444']);
+        Client::factory()->create(['company_name' => 'Other Co', 'contact_name' => 'Zed Quinn', 'email' => 'zed@other.test', 'phone' => '305-111-2222', 'us_dot_number' => '555', 'mc_number' => '444']);
 
         foreach (['rodriguez freight', 'maria', 'MARIA@rodriguez.test', '754-290-0308', '(754) 290 0308', '7542900308', '+1 754 290 0308', '1234567', 'DOT 1234567', 'mc 998877'] as $term) {
             $found = Client::search($term)->pluck('id')->all();

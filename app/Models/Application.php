@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class Application extends Model
@@ -27,9 +28,23 @@ class Application extends Model
     /** Signed / issued: permanent, read-only (has a legal signature). */
     public const LOCKED_STATUSES = ['signed', 'issued'];
 
+    /**
+     * Once signed, an application is a closed record. Only these may still change: the workflow
+     * status, the link, who it is filed under and the language of the pages. Everything the client
+     * signed (data, finance, agency, signature) is frozen; a correction is a new revision.
+     */
+    public const CHANGEABLE_AFTER_SIGNING = [
+        'status', 'in_review_at', 'quoted_at', 'issued_at', 'selected_quote_id', 'client_id', 'pdf_path',
+        'token', 'link_expires_at', 'link_revoked_at', 'link_pin', 'is_demo', 'locale', 'superseded_at', 'updated_at',
+    ];
+
     protected $guarded = ['id'];
 
     protected $casts = [
+        'link_expires_at' => 'datetime',
+        'link_revoked_at' => 'datetime',
+        'link_pin' => 'encrypted',
+        'superseded_at' => 'datetime',
         'effective_date' => 'date',
         'is_demo' => 'boolean',
         'total_policy_premium' => 'decimal:2',
@@ -52,6 +67,17 @@ class Application extends Model
             $application->verification_code ??= strtoupper(Str::random(10));
             $application->locale ??= 'en';
             $application->status ??= 'created';
+            $application->link_pin ??= (string) random_int(100000, 999999);
+            $application->link_expires_at ??= now()->addDays(config('vantins.link_days', 30));
+        });
+
+        // A signed application cannot be edited behind the client's back.
+        static::updating(function (Application $application): ?bool {
+            if (! $application->wasSignedBeforeThisSave()) {
+                return null;
+            }
+
+            return array_diff(array_keys($application->getDirty()), self::CHANGEABLE_AFTER_SIGNING) === [] ? null : false;
         });
 
         // Total Policy Premium is derived from the payment plan the advisor enters.
@@ -108,9 +134,140 @@ class Application extends Model
         return $user->isAdmin() || $this->created_by === $user->id;
     }
 
+    /** Signed by the client (or issued): the data is frozen for good. */
+    public function isSigned(): bool
+    {
+        return $this->signed_at !== null || in_array($this->status, self::LOCKED_STATUSES, true);
+    }
+
+    protected function wasSignedBeforeThisSave(): bool
+    {
+        return $this->getOriginal('signed_at') !== null || in_array($this->getOriginal('status'), self::LOCKED_STATUSES, true);
+    }
+
     public function isLocked(): bool
     {
-        return in_array($this->status, self::LOCKED_STATUSES, true);
+        return $this->isSigned();
+    }
+
+    public function isSuperseded(): bool
+    {
+        return $this->superseded_at !== null;
+    }
+
+    // ---- the client's link ------------------------------------------------------------------
+
+    /** 'completed' (signed) | 'revoked' | 'expired' | 'active' */
+    public function linkStatus(): string
+    {
+        return match (true) {
+            $this->isSigned() => 'completed',
+            $this->link_revoked_at !== null => 'revoked',
+            $this->link_expires_at !== null && $this->link_expires_at->isPast() => 'expired',
+            default => 'active',
+        };
+    }
+
+    /** Driver data sits behind a PIN, for the client's link only. */
+    public function needsPin(): bool
+    {
+        return config('vantins.link_pin') && $this->link_pin !== null && $this->drivers()->exists();
+    }
+
+    /** A new link: the old address stops working, the clock restarts and the PIN changes. */
+    public function renewLink(): void
+    {
+        $this->forceFill([
+            'token' => (string) Str::uuid(),
+            'link_expires_at' => now()->addDays(config('vantins.link_days', 30)),
+            'link_revoked_at' => null,
+            'link_pin' => (string) random_int(100000, 999999),
+        ])->save();
+
+        ActivityLog::record($this, 'link_issued');
+    }
+
+    public function revokeLink(): void
+    {
+        if ($this->link_revoked_at === null) {
+            $this->forceFill(['link_revoked_at' => now()])->save();
+            ActivityLog::record($this, 'link_revoked');
+        }
+    }
+
+    // ---- revisions --------------------------------------------------------------------------
+
+    /**
+     * The way to correct a signed application: a copy of it as a new version, with the reason, to be
+     * reviewed and signed again. The signed one stays exactly as it was, marked as replaced.
+     */
+    public function createRevision(string $reason): self
+    {
+        abort_unless($this->isSigned() && ! $this->isSuperseded(), 422);
+
+        return DB::transaction(function () use ($reason): self {
+            $copy = $this->replicate([
+                'token', 'verification_code', 'status', 'link_expires_at', 'link_revoked_at', 'link_pin',
+                'signed_at', 'disclosure_accepted_at', 'signer_name', 'signature_path', 'signed_ip', 'pdf_path',
+                'submitted_at', 'in_review_at', 'quoted_at', 'issued_at', 'selected_quote_id', 'superseded_at', 'revision_reason',
+            ]);
+            $copy->status = 'created';
+            $copy->revision = $this->revision + 1;
+            $copy->revision_of_id = $this->id;
+            $copy->revision_reason = $reason;
+            $copy->save();
+
+            // Rows are copied as they are; coverages refer to vehicles / trailers by id, so those ids
+            // are translated to the copies.
+            $newIds = ['vehicle_ids' => [], 'trailer_ids' => []];
+
+            foreach (['drivers' => null, 'vehicles' => 'vehicle_ids', 'trailers' => 'trailer_ids'] as $relation => $idsKey) {
+                foreach ($this->{$relation} as $row) {
+                    $new = $row->replicate()->forceFill(['application_id' => $copy->id]);
+                    $new->save();
+
+                    if ($idsKey) {
+                        $newIds[$idsKey][$row->id] = $new->id;
+                    }
+                }
+            }
+
+            foreach ($this->coverages as $row) {
+                $new = $row->replicate()->forceFill(['application_id' => $copy->id]);
+                $details = $row->details ?? [];
+
+                foreach ($newIds as $idsKey => $map) {
+                    if (isset($details[$idsKey])) {
+                        $details[$idsKey] = array_values(array_filter(array_map(fn ($id) => $map[$id] ?? null, $details[$idsKey])));
+                    }
+                }
+
+                $new->details = $details ?: null;
+                $new->save();
+            }
+
+            $this->forceFill(['superseded_at' => now()])->save();
+            $this->revokeLink();
+
+            ActivityLog::record($copy, 'revision_created', ['revision_reason' => [null, $reason]]);
+
+            return $copy->refresh();
+        });
+    }
+
+    public function scopeCurrent(Builder $query): Builder
+    {
+        return $query->whereNull('superseded_at');
+    }
+
+    public function revisionOf(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'revision_of_id');
+    }
+
+    public function revisions(): HasMany
+    {
+        return $this->hasMany(self::class, 'revision_of_id');
     }
 
     public function isCancelled(): bool

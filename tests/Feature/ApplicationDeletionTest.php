@@ -51,14 +51,14 @@ class ApplicationDeletionTest extends TestCase
         }
     }
 
-    public function test_edit_page_hides_delete_for_a_signed_application(): void
+    public function test_a_signed_application_has_no_edit_page_and_cannot_be_deleted(): void
     {
         $signed = Application::create(['company_name' => 'Acme', 'status' => 'signed']);
         $open = Application::create(['company_name' => 'Beta', 'status' => 'created']);
 
-        Livewire::actingAs($this->staff())
-            ->test(EditApplication::class, ['record' => $signed->getKey()])
-            ->assertActionHidden('delete');
+        // Signed: the edit page is closed (its data is frozen) and delete is not offered.
+        $this->actingAs($this->staff())->get("/admin/applications/{$signed->getKey()}/edit")->assertForbidden();
+        $this->assertFalse($this->staff()->can('delete', $signed));
 
         Livewire::actingAs($this->staff())
             ->test(EditApplication::class, ['record' => $open->getKey()])

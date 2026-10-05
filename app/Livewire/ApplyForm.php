@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Application;
 use App\Models\CoverageType;
+use App\Support\ApplicationAccess;
 use App\Support\CoverageRules;
 use App\Support\DataQuality;
 use App\Support\PdfDocuments;
@@ -46,6 +47,11 @@ class ApplyForm extends Component
 
     public array $coverages = [];
 
+    /** The PIN the client types before driver data is shown. */
+    public string $pin = '';
+
+    public string $pinMessage = '';
+
     public bool $disclosureAccepted = false;
 
     public string $signerName = '';
@@ -84,6 +90,12 @@ class ApplyForm extends Component
             && ! $this->cancelled;
         $this->staffReadOnly = auth()->check() && ! $this->editable;
 
+        // The client only reviews: nothing of the application is put into the page's state, so
+        // nothing leaks before the PIN is given.
+        if (! $this->editable) {
+            return;
+        }
+
         foreach ($this->singleFields as $field) {
             $this->form[$field] = $this->application->{$field};
         }
@@ -110,6 +122,27 @@ class ApplyForm extends Component
         $this->signerName = $this->application->signer_name ?? '';
     }
 
+    /** 'ok' | 'expired' | 'revoked' | 'pin': what stands between the visitor and the application. */
+    public function accessState(): string
+    {
+        return ApplicationAccess::state($this->application);
+    }
+
+    public function verifyPin(): void
+    {
+        $result = ApplicationAccess::verifyPin($this->application, $this->pin);
+
+        $this->pinMessage = match ($result) {
+            'wrong' => __('app.pin_wrong'),
+            'locked' => __('app.pin_locked', ['minutes' => max(ApplicationAccess::minutesLocked($this->application), 1)]),
+            default => '',
+        };
+
+        if ($result === 'ok') {
+            $this->pin = '';
+        }
+    }
+
     /** Livewire skips mount() on every later request: re-apply the chosen language each time. */
     public function hydrate(): void
     {
@@ -129,7 +162,10 @@ class ApplyForm extends Component
     public function switchLocale(string $locale): void
     {
         if (in_array($locale, ['en', 'es'], true)) {
-            $this->application->update(['locale' => $locale]);
+            // Only someone who may see the application changes the language it is stored with.
+            if ($this->accessState() === 'ok') {
+                $this->application->update(['locale' => $locale]);
+            }
             App::setLocale($locale);
         }
     }
@@ -380,6 +416,7 @@ class ApplyForm extends Component
     {
         abort_if($this->locked || $this->cancelled, 410);
         abort_if($this->staffReadOnly, 403);
+        abort_unless($this->accessState() === 'ok', 403);
 
         $this->validate([
             'signerName' => 'required|string|max:255',
@@ -421,6 +458,7 @@ class ApplyForm extends Component
     public function render()
     {
         return view('livewire.apply-form', [
+            'access' => $this->accessState(),
             'catalog' => CoverageType::catalog(),
             'types' => CoverageType::query()->get()->keyBy('key'),
         ]);

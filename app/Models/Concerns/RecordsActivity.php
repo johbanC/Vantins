@@ -22,7 +22,7 @@ trait RecordsActivity
 
     /** Personal identifiers: the log says they changed, never to what. */
     protected static array $auditAlwaysRedact = [
-        'dob', 'cdl_number', 'password', 'signature_path', 'accepted_signature_path', 'accepted_snapshot', 'acceptance_token',
+        'dob', 'cdl_number', 'password', 'link_pin', 'signature_path', 'accepted_signature_path', 'accepted_snapshot', 'acceptance_token',
     ];
 
     public static function bootRecordsActivity(): void
