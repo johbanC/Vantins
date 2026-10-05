@@ -36,6 +36,15 @@ return [
         'open' => 'Abrir',
     ],
 
+    'user' => [
+        'name' => 'Nombre',
+        'role' => 'Rol',
+        'role_hint' => 'Administrador: todo. Agente: solo sus clientes y solicitudes. Solo lectura: ve todo, no crea ni modifica nada.',
+        'roles' => ['admin' => 'Administrador', 'agent' => 'Agente', 'viewer' => 'Solo lectura'],
+        'password' => 'Contraseña',
+        'password_hint' => 'Déjela en blanco para conservar la actual.',
+    ],
+
     'stats' => [
         'total' => 'Solicitudes totales',
     ],

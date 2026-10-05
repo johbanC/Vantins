@@ -5,9 +5,12 @@ namespace App\Policies;
 use App\Models\Application;
 use App\Models\User;
 
+/**
+ * admin: everything. agent: sees applications they created or of their clients, edits only the ones
+ * they created. viewer: read-only, sees all.
+ */
 class ApplicationPolicy
 {
-    // All staff (agent or admin) may see and work on every application.
     public function viewAny(User $user): bool
     {
         return true;
@@ -15,42 +18,42 @@ class ApplicationPolicy
 
     public function view(User $user, Application $application): bool
     {
-        return true;
+        return $user->isAdmin() || $user->isViewer() || $application->isOwnedBy($user);
     }
 
     public function create(User $user): bool
     {
-        return true;
+        return $user->canWrite();
     }
 
     public function update(User $user, Application $application): bool
     {
-        return true;
+        return $user->canWrite() && $application->canRevealSensitiveData($user);
     }
 
     public function reorder(User $user): bool
     {
-        return true;
+        return $user->canWrite();
     }
 
     // A signed / issued document can never be deleted.
     public function delete(User $user, Application $application): bool
     {
-        return $application->isDeletable();
+        return $this->update($user, $application) && $application->isDeletable();
     }
 
     public function deleteAny(User $user): bool
     {
-        return true;
+        return $user->canWrite();
     }
 
     public function forceDelete(User $user, Application $application): bool
     {
-        return $application->isDeletable();
+        return $this->delete($user, $application);
     }
 
     public function restore(User $user, Application $application): bool
     {
-        return true;
+        return $this->update($user, $application);
     }
 }

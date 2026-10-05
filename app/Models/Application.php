@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -79,6 +80,30 @@ class Application extends Model
             'agency_phone' => config('vantins.agency_phone'),
             'contact_agent_name' => $advisor?->name,
         ]);
+    }
+
+    /** Admins and read-only users see everything; an agent only what is theirs. */
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        if ($user->isAdmin() || $user->isViewer()) {
+            return $query;
+        }
+
+        return $query->where(fn (Builder $q) => $q
+            ->where('created_by', $user->id)
+            ->orWhereHas('client', fn (Builder $c) => $c->where('assigned_user_id', $user->id)));
+    }
+
+    /** Created by the user, or belongs to a client assigned to the user. */
+    public function isOwnedBy(User $user): bool
+    {
+        return $this->created_by === $user->id || $this->client?->assigned_user_id === $user->id;
+    }
+
+    /** Full CDL number and date of birth: admins and whoever created the application. */
+    public function canRevealSensitiveData(User $user): bool
+    {
+        return $user->isAdmin() || $this->created_by === $user->id;
     }
 
     public function isLocked(): bool

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ApplicationResource\RelationManagers;
 use App\Models\Driver;
 use App\Support\DataQuality;
 use App\Support\Format;
+use App\Support\Mask;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -22,6 +23,12 @@ class DriversRelationManager extends RelationManager
         return __('app.drivers_schedule');
     }
 
+    /** Full date of birth and CDL number: admins and whoever created the application. */
+    protected function canRevealSensitive(): bool
+    {
+        return $this->getOwnerRecord()->canRevealSensitiveData(auth()->user());
+    }
+
     public function form(Form $form): Form
     {
         $minAge = DataQuality::MIN_DRIVER_AGE;
@@ -29,6 +36,7 @@ class DriversRelationManager extends RelationManager
         return $form->columns(2)->schema([
             Forms\Components\TextInput::make('driver_name')->label(__('app.driver_name'))->required()->maxLength(190),
             Forms\Components\DatePicker::make('dob')->label(__('app.dob'))->native(false)
+                ->visible(fn () => $this->canRevealSensitive())
                 ->minDate('1920-01-01')
                 ->maxDate(now()->subYears($minAge))
                 ->validationMessages([
@@ -36,6 +44,7 @@ class DriversRelationManager extends RelationManager
                     'after_or_equal' => __('app.validation.date_implausible'),
                 ]),
             Forms\Components\TextInput::make('cdl_number')->label(__('app.cdl_number'))
+                ->visible(fn () => $this->canRevealSensitive())
                 ->minLength(4)->maxLength(25)
                 ->regex('/^[A-Za-z0-9\- ]+$/')
                 ->validationMessages([
@@ -76,8 +85,8 @@ class DriversRelationManager extends RelationManager
             ->reorderable('sort_order')
             ->columns([
                 Tables\Columns\TextColumn::make('driver_name')->label(__('app.driver_name')),
-                Tables\Columns\TextColumn::make('dob')->label(__('app.dob'))->formatStateUsing(fn ($state) => Format::date($state)),
-                Tables\Columns\TextColumn::make('cdl_number')->label(__('app.cdl_number')),
+                Tables\Columns\TextColumn::make('dob')->label(__('app.dob'))->formatStateUsing(fn ($state) => $this->canRevealSensitive() ? Format::date($state) : Mask::dob($state)),
+                Tables\Columns\TextColumn::make('cdl_number')->label(__('app.cdl_number'))->formatStateUsing(fn ($state) => $this->canRevealSensitive() ? $state : Mask::cdl($state)),
                 Tables\Columns\TextColumn::make('state_issued')->label(__('app.state_issued')),
                 Tables\Columns\TextColumn::make('cdl_issue_date')->label(__('app.cdl_issue_date'))->formatStateUsing(fn ($state) => Format::date($state)),
                 Tables\Columns\TextColumn::make('cdl_expiry_date')->label(__('app.cdl_expiry_date'))

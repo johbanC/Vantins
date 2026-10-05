@@ -36,6 +36,15 @@ return [
         'open' => 'Open',
     ],
 
+    'user' => [
+        'name' => 'Name',
+        'role' => 'Role',
+        'role_hint' => 'Administrator: everything. Agent: only their own clients and applications. Read-only: sees everything, creates and changes nothing.',
+        'roles' => ['admin' => 'Administrator', 'agent' => 'Agent', 'viewer' => 'Read-only'],
+        'password' => 'Password',
+        'password_hint' => 'Leave blank to keep the current password.',
+    ],
+
     'stats' => [
         'total' => 'Total applications',
     ],

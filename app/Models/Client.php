@@ -121,6 +121,23 @@ class Client extends Model
             ]);
     }
 
+    /** Admins and read-only users see every client; an agent only the ones assigned to or created by them. */
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        if ($user->isAdmin() || $user->isViewer()) {
+            return $query;
+        }
+
+        return $query->where(fn (Builder $q) => $q
+            ->where('assigned_user_id', $user->id)
+            ->orWhere('created_by', $user->id));
+    }
+
+    public function isOwnedBy(User $user): bool
+    {
+        return $this->assigned_user_id === $user->id || $this->created_by === $user->id;
+    }
+
     public function applications(): HasMany
     {
         return $this->hasMany(Application::class)->latest();

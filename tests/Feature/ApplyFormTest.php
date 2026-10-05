@@ -16,7 +16,7 @@ class ApplyFormTest extends TestCase
 
     private function staff(): User
     {
-        return User::factory()->create(['role' => 'agent', 'locale' => 'es']);
+        return User::factory()->create(['role' => 'admin', 'locale' => 'es']);
     }
 
     public function test_client_link_loads_and_shows_the_review(): void

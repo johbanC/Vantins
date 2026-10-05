@@ -34,6 +34,12 @@ class ClientResource extends Resource
         return __('panel.resource.clients');
     }
 
+    /** An agent only sees their own clients; admins and read-only users see all. */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->visibleTo(auth()->user());
+    }
+
     /** Shared by the Clients page and the "create client" modal inside the application form. */
     public static function formSchema(): array
     {
@@ -65,7 +71,9 @@ class ClientResource extends Resource
                         ->relationship('assignedUser', 'name')
                         ->searchable()
                         ->preload()
-                        ->default(fn () => auth()->id()),
+                        ->default(fn () => auth()->id())
+                        ->disabled(fn () => ! auth()->user()?->isAdmin())
+                        ->dehydrated(),
                     Forms\Components\Toggle::make('is_demo')
                         ->label(__('panel.field.is_demo'))
                         ->visible(fn () => auth()->user()?->isAdmin() ?? false)
@@ -149,11 +157,13 @@ class ClientResource extends Resource
                     ->label(__('panel.client.new_application'))
                     ->icon('heroicon-o-plus-circle')
                     ->color('warning')
+                    ->visible(fn (Client $record) => auth()->user()->can('update', $record) && auth()->user()->can('create', Application::class))
                     ->action(function (Client $record) {
                         $application = Application::createForClient($record, auth()->user());
 
                         return redirect(ApplicationResource::getUrl('edit', ['record' => $application]));
                     }),
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ]);
     }
@@ -170,6 +180,7 @@ class ClientResource extends Resource
         return [
             'index' => Pages\ListClients::route('/'),
             'create' => Pages\CreateClient::route('/create'),
+            'view' => Pages\ViewClient::route('/{record}'),
             'edit' => Pages\EditClient::route('/{record}/edit'),
         ];
     }

@@ -10,7 +10,9 @@ class ApplicationStats extends BaseWidget
 {
     protected function getStats(): array
     {
-        $counts = Application::query()
+        $visible = fn () => Application::query()->visibleTo(auth()->user());
+
+        $counts = $visible()
             ->selectRaw('status, count(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status');
@@ -18,7 +20,7 @@ class ApplicationStats extends BaseWidget
         $label = fn (string $s) => __('panel.status.'.$s);
 
         return [
-            Stat::make(__('panel.stats.total'), Application::count())
+            Stat::make(__('panel.stats.total'), $visible()->count())
                 ->color('primary'),
             Stat::make($label('created'), $counts['created'] ?? 0)
                 ->color('gray'),

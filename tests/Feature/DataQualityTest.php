@@ -17,7 +17,7 @@ class DataQualityTest extends TestCase
 
     private function advisor(): User
     {
-        return User::factory()->create(['role' => 'agent', 'locale' => 'es']);
+        return User::factory()->create(['role' => 'admin', 'locale' => 'es']);
     }
 
     public function test_a_driver_born_in_2014_is_blocked(): void

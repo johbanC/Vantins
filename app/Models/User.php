@@ -30,14 +30,32 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
+    public const ROLES = ['admin', 'agent', 'viewer'];
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
 
+    public function isAgent(): bool
+    {
+        return $this->role === 'agent';
+    }
+
+    /** Read-only: sees everything, creates and changes nothing. */
+    public function isViewer(): bool
+    {
+        return $this->role === 'viewer';
+    }
+
+    /** May create and modify records (still limited to its own ones for an agent). */
+    public function canWrite(): bool
+    {
+        return $this->isAdmin() || $this->isAgent();
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
-        // Every staff account (agent or admin) may use the internal panel.
-        return in_array($this->role, ['agent', 'admin'], true);
+        return in_array($this->role, self::ROLES, true);
     }
 }

@@ -260,10 +260,12 @@
             <p class="mb-6 text-sm text-white/50">{{ __('app.review_client_hint') }}</p>
             @include('livewire.partials.apply-review')
 
-            <div class="mt-8 border-t border-white/10 pt-6">
-                @include('livewire.partials.sign-block')
-                <button wire:click="sign" class="{{ $btn }} mt-6 w-full sm:w-auto">{{ __('app.sign_send') }}</button>
-            </div>
+            @unless ($staffReadOnly)
+                <div class="mt-8 border-t border-white/10 pt-6">
+                    @include('livewire.partials.sign-block')
+                    <button wire:click="sign" class="{{ $btn }} mt-6 w-full sm:w-auto">{{ __('app.sign_send') }}</button>
+                </div>
+            @endunless
         </div>
     @endif
 </div>

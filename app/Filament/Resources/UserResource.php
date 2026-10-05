@@ -3,19 +3,26 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
+
+    public static function getModelLabel(): string
+    {
+        return __('panel.resource.user');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('panel.resource.users');
+    }
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -24,24 +31,29 @@ class UserResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
+                    ->label(__('panel.user.name'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('email')
+                    ->label(__('panel.field.email'))
                     ->email()
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Select::make('role')
-                    ->options(['agent' => 'Agent', 'admin' => 'Admin'])
+                    ->label(__('panel.user.role'))
+                    ->options(collect(User::ROLES)->mapWithKeys(fn ($r) => [$r => __('panel.user.roles.'.$r)])->all())
+                    ->helperText(__('panel.user.role_hint'))
                     ->required()
                     ->native(false)
                     ->default('agent'),
                 Forms\Components\TextInput::make('password')
+                    ->label(__('panel.user.password'))
                     ->password()
                     ->revealable()
                     ->required(fn (string $operation) => $operation === 'create')
                     ->dehydrated(fn (?string $state) => filled($state))
                     ->maxLength(255)
-                    ->helperText('Leave blank to keep the current password.'),
+                    ->helperText(__('panel.user.password_hint')),
             ]);
     }
 
@@ -50,10 +62,15 @@ class UserResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
+                    ->label(__('panel.user.name'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
+                    ->label(__('panel.field.email'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('role')
+                    ->label(__('panel.user.role'))
+                    ->badge()
+                    ->formatStateUsing(fn (string $state) => __('panel.user.roles.'.$state))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email_verified_at')
                     ->dateTime()

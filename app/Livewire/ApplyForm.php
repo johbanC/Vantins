@@ -17,6 +17,9 @@ class ApplyForm extends Component
     /** A signed-in staff member may edit; the client only reviews + signs. */
     public bool $editable = false;
 
+    /** Signed-in staff without permission to edit: they can look, never sign. */
+    public bool $staffReadOnly = false;
+
     /** Already signed / issued: nobody edits, nobody re-signs. */
     public bool $locked = false;
 
@@ -31,13 +34,19 @@ class ApplyForm extends Component
     public int $totalSteps = 7; // advisor: 1 applicant .. 6 finance, 7 review + sign
 
     public array $form = [];
+
     public array $drivers = [];
+
     public array $vehicles = [];
+
     public array $trailers = [];
+
     public array $coverages = [];
 
     public bool $disclosureAccepted = false;
+
     public string $signerName = '';
+
     public ?string $signatureData = null;
 
     protected array $singleFields = [
@@ -64,7 +73,13 @@ class ApplyForm extends Component
 
         $this->locked = $this->application->isLocked();
         $this->cancelled = $this->application->isCancelled();
-        $this->editable = auth()->check() && ! $this->locked && ! $this->cancelled;
+        // Only staff allowed to change this application get the editable form; the client
+        // (not signed in) reviews and signs. Other staff just look at it.
+        $this->editable = auth()->check()
+            && auth()->user()->can('update', $this->application)
+            && ! $this->locked
+            && ! $this->cancelled;
+        $this->staffReadOnly = auth()->check() && ! $this->editable;
 
         foreach ($this->singleFields as $field) {
             $this->form[$field] = $this->application->{$field};
@@ -247,6 +262,7 @@ class ApplyForm extends Component
     public function sign(): void
     {
         abort_if($this->locked || $this->cancelled, 410);
+        abort_if($this->staffReadOnly, 403);
 
         $this->validate([
             'signerName' => 'required|string|max:255',

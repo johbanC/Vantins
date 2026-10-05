@@ -12,6 +12,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 
@@ -31,6 +32,12 @@ class ApplicationResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('panel.resource.applications');
+    }
+
+    /** An agent only sees their own applications; admins and read-only users see all. */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->visibleTo(auth()->user());
     }
 
     protected static function statusOptions(): array
@@ -223,12 +230,14 @@ class ApplicationResource extends Resource
                     ->tooltip(__('panel.action.fill_tooltip'))
                     ->icon('heroicon-o-pencil-square')
                     ->color('warning')
+                    ->visible(fn (Application $record) => auth()->user()->can('update', $record))
                     ->url(fn (Application $record) => route('apply.show', $record->token))
                     ->openUrlInNewTab(),
                 Tables\Actions\Action::make('changeStatus')
                     ->label(__('panel.action.change_status'))
                     ->icon('heroicon-o-arrow-path')
                     ->color('gray')
+                    ->visible(fn (Application $record) => auth()->user()->can('update', $record))
                     ->form([
                         Forms\Components\Select::make('status')
                             ->label(__('panel.status.label'))
@@ -242,6 +251,7 @@ class ApplicationResource extends Resource
                     ->label(__('panel.action.client_link'))
                     ->icon('heroicon-o-link')
                     ->color('gray')
+                    ->visible(fn (Application $record) => auth()->user()->can('update', $record))
                     ->modalHeading(__('panel.action.client_link_heading'))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel(__('filament-actions::modal.actions.cancel.label'))
@@ -259,6 +269,7 @@ class ApplicationResource extends Resource
                         'en' => route('applications.pdf', ['token' => $record->token, 'locale' => 'en']),
                         'es' => route('applications.pdf', ['token' => $record->token, 'locale' => 'es']),
                     ])),
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -283,6 +294,7 @@ class ApplicationResource extends Resource
         return [
             'index' => Pages\ListApplications::route('/'),
             'create' => Pages\CreateApplication::route('/create'),
+            'view' => Pages\ViewApplication::route('/{record}'),
             'edit' => Pages\EditApplication::route('/{record}/edit'),
         ];
     }
