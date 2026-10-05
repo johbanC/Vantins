@@ -179,25 +179,7 @@
             @endforeach
 
             @if ($step === 5)
-                <h2 class="mb-5 text-lg font-semibold">{{ __('app.coverages_list') }}</h2>
-                <div class="space-y-4">
-                    @forelse ($coverages as $i => $row)
-                        <div class="rounded-xl border border-white/10 bg-white/5 p-4">
-                            <div class="mb-3 flex items-center justify-between">
-                                <span class="text-xs text-white/50">#{{ $i + 1 }}</span>
-                                <button wire:click="removeRow('coverages', {{ $i }})" class="text-xs text-red-300 hover:text-red-200">{{ __('app.remove') }}</button>
-                            </div>
-                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                                <div><label class="{{ $label }}">{{ __('app.coverage') }}</label><input wire:model="coverages.{{ $i }}.coverage" class="{{ $input }}"></div>
-                                <div><label class="{{ $label }}">{{ __('app.limit') }}</label><input wire:model="coverages.{{ $i }}.limit_amount" class="{{ $input }}"></div>
-                                <div><label class="{{ $label }}">{{ __('app.deductible') }}</label><input wire:model="coverages.{{ $i }}.deductible" class="{{ $input }}"></div>
-                            </div>
-                        </div>
-                    @empty
-                        <p class="text-sm text-white/40">{{ __('app.none_yet') }}</p>
-                    @endforelse
-                    <button wire:click="addRow('coverages')" class="{{ $btnGhost }}">+ {{ __('app.add') }}</button>
-                </div>
+                @include('livewire.partials.coverage-picker')
             @endif
 
             @if ($step === 6)

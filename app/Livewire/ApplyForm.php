@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use App\Models\Application;
+use App\Models\CoverageType;
+use App\Support\CoverageRules;
 use App\Support\DataQuality;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
@@ -65,7 +67,7 @@ class ApplyForm extends Component
 
     public function mount(string $token): void
     {
-        $this->application = Application::with(['drivers', 'vehicles', 'trailers', 'coverages'])
+        $this->application = Application::with(['drivers', 'vehicles', 'trailers', 'coverages.type'])
             ->where('token', $token)
             ->firstOrFail();
 
@@ -91,9 +93,18 @@ class ApplyForm extends Component
                 ->map(fn ($row) => $this->rowToArray($row, DataQuality::ROW_FIELDS[$rel]))
                 ->all();
         }
-        $this->coverages = $this->application->coverages
-            ->map(fn ($row) => $this->rowToArray($row, ['coverage', 'limit_amount', 'deductible']))
-            ->all();
+        $this->coverages = $this->application->coverages->map(fn ($row) => [
+            'id' => $row->id,
+            'type' => $row->type?->key ?? CoverageType::REPEATABLE,
+            'limit_amount' => $row->limit_amount,
+            'aggregate_limit' => $row->aggregate_limit,
+            'deductible' => $row->deductible,
+            'underlying_coverage' => $row->underlying_coverage,
+            'custom_name' => $row->custom_name ?? $row->coverage,
+            'notes' => $row->notes,
+            'vehicle_ids' => array_map('strval', (array) ($row->details['vehicle_ids'] ?? [])),
+            'trailer_ids' => array_map('strval', (array) ($row->details['trailer_ids'] ?? [])),
+        ])->all();
 
         $this->signerName = $this->application->signer_name ?? '';
     }
@@ -128,6 +139,25 @@ class ApplyForm extends Component
         $this->{$collection}[] = [];
     }
 
+    /** Tick / untick a catalog coverage. "Other" can be added again and again, the rest only once. */
+    public function toggleCoverage(string $key): void
+    {
+        abort_unless($this->editable, 403);
+
+        $type = CoverageType::catalog()->get($key);
+        abort_unless($type, 422);
+
+        $index = collect($this->coverages)->search(fn ($row) => ($row['type'] ?? null) === $key);
+
+        if ($type->isRepeatable() || $index === false) {
+            $this->coverages[] = ['type' => $key];
+
+            return;
+        }
+
+        $this->removeRow('coverages', $index);
+    }
+
     public function removeRow(string $collection, int $index): void
     {
         abort_unless($this->editable, 403);
@@ -149,9 +179,40 @@ class ApplyForm extends Component
         $this->syncRows('drivers', DataQuality::ROW_FIELDS['drivers']);
         $this->syncRows('vehicles', DataQuality::ROW_FIELDS['vehicles']);
         $this->syncRows('trailers', DataQuality::ROW_FIELDS['trailers']);
-        $this->syncRows('coverages', ['coverage', 'limit_amount', 'deductible']);
+        $this->syncRows('coverages', []);
 
         $this->application->refresh();
+    }
+
+    /** Columns of a coverage row from what was ticked and typed; null when the type is unknown. */
+    protected function coveragePayload(array $row): ?array
+    {
+        $type = CoverageType::query()->where('key', $row['type'] ?? null)->first();
+
+        if (! $type) {
+            return null;
+        }
+
+        $text = fn (string $f, int $max = 190) => blank($row[$f] ?? null) ? null : mb_substr(trim((string) $row[$f]), 0, $max);
+        $ids = fn (string $f) => array_values(array_map('intval', array_filter((array) ($row[$f] ?? []))));
+
+        $details = array_filter([
+            'vehicle_ids' => $type->hasField('vehicles') ? $ids('vehicle_ids') : [],
+            'trailer_ids' => $type->hasField('trailers') ? $ids('trailer_ids') : [],
+        ]);
+
+        return [
+            'coverage_type_id' => $type->id,
+            'coverage' => $type->isRepeatable() ? $text('custom_name') : $type->name_en, // readable name kept for old readers
+            'custom_name' => $type->isRepeatable() ? $text('custom_name') : null,
+            'limit_amount' => $type->hasField('limit') ? $text('limit_amount', 40) : null,
+            'aggregate_limit' => $type->hasField('aggregate') ? $text('aggregate_limit', 40) : null,
+            'deductible' => $type->hasField('deductible') ? $text('deductible', 40) : null,
+            'underlying_coverage' => $type->hasField('underlying') ? $text('underlying_coverage') : null,
+            'notes' => $text('notes', 1000),
+            'details' => $details ?: null,
+            'needs_review' => $type->isRepeatable(),
+        ];
     }
 
     /**
@@ -166,6 +227,29 @@ class ApplyForm extends Component
         $keep = [];
 
         foreach ($this->{$relation} as $i => $row) {
+            if ($relation === 'coverages') {
+                $payload = $this->coveragePayload($row);
+
+                if ($payload === null) {
+                    unset($this->coverages[$i]['id']);
+
+                    continue;
+                }
+
+                $payload['sort_order'] = $i;
+                $model = $existing->get($row['id'] ?? null);
+                if ($model) {
+                    $model->update($payload);
+                } else {
+                    $model = $this->application->coverages()->create($payload);
+                }
+
+                $keep[] = $model->id;
+                $this->coverages[$i]['id'] = $model->id;
+
+                continue;
+            }
+
             $payload = collect($fields)
                 ->mapWithKeys(function ($f) use ($row) {
                     $value = $row[$f] ?? null;
@@ -214,6 +298,12 @@ class ApplyForm extends Component
             2 => DataQuality::validateRows('drivers', $this->drivers),
             3 => DataQuality::validateRows('vehicles', $this->vehicles),
             4 => DataQuality::validateRows('trailers', $this->trailers),
+            5 => CoverageRules::validateRows(
+                $this->coverages,
+                CoverageType::query()->get()->keyBy('key'),
+                collect($this->vehicles)->pluck('id')->filter()->map(fn ($id) => (int) $id)->all(),
+                collect($this->trailers)->pluck('id')->filter()->map(fn ($id) => (int) $id)->all(),
+            ),
             default => [],
         };
 
@@ -223,7 +313,7 @@ class ApplyForm extends Component
     /** Validate everything; on failure jump to the first step that has an error. */
     protected function validateAll(): bool
     {
-        foreach ([1, 2, 3, 4, 6] as $step) {
+        foreach ([1, 2, 3, 4, 5, 6] as $step) {
             if (! $this->validateStep($step)) {
                 $this->step = $step;
 
@@ -322,6 +412,9 @@ class ApplyForm extends Component
 
     public function render()
     {
-        return view('livewire.apply-form');
+        return view('livewire.apply-form', [
+            'catalog' => CoverageType::catalog(),
+            'types' => CoverageType::query()->get()->keyBy('key'),
+        ]);
     }
 }

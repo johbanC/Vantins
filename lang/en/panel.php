@@ -72,7 +72,22 @@ return [
             'trailer' => 'Trailer',
             'coverage' => 'Coverage',
             'user' => 'User',
+            'coveragetype' => 'Coverage catalog',
         ],
+    ],
+
+    'catalog' => [
+        'title' => 'Coverage catalog',
+        'model' => 'Catalog coverage',
+        'name_en' => 'Name (English)',
+        'name_es' => 'Name (Spanish)',
+        'is_active' => 'Available in the forms',
+        'sort_order' => 'Order',
+        'limit_options' => 'Limits offered',
+        'aggregate_options' => 'Aggregates offered',
+        'deductible_options' => 'Deductibles offered',
+        'amounts_hint' => 'Type an amount and press Enter. Leave it empty and the advisor types any amount.',
+        'free_amount' => 'Free amount',
     ],
 
     'stats' => [

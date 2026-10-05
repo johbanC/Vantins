@@ -80,9 +80,9 @@
     @if ($application->coverages->count())
         <h2>{{ __('app.coverages_list') }}</h2>
         <table class="data">
-            <tr><th>{{ __('app.coverage') }}</th><th>{{ __('app.limit') }}</th><th>{{ __('app.deductible') }}</th></tr>
+            <tr><th>{{ __('app.coverage') }}</th><th>{{ __('app.limit') }}</th><th>{{ __('app.deductible') }}</th><th>{{ __('app.coverage_details') }}</th></tr>
             @foreach ($application->coverages as $c)
-                <tr><td>{{ $c->coverage }}</td><td>{{ $c->limit_amount }}</td><td>{{ $c->deductible }}</td></tr>
+                <tr><td>{{ $c->displayName() }}</td><td>{{ $c->displayLimit() }}</td><td>{{ \App\Models\Coverage::formatAmount($c->deductible) }}</td><td style="font-size:9px">@foreach ($c->detailLines() as $line){{ $line }}<br>@endforeach</td></tr>
             @endforeach
         </table>
     @endif

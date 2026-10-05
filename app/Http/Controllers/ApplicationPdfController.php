@@ -13,7 +13,7 @@ class ApplicationPdfController extends Controller
 {
     public function show(string $token, ?string $locale = null)
     {
-        $application = Application::with(['drivers', 'vehicles', 'trailers', 'coverages'])
+        $application = Application::with(['drivers', 'vehicles', 'trailers', 'coverages.type'])
             ->where('token', $token)
             ->firstOrFail();
 
@@ -21,7 +21,7 @@ class ApplicationPdfController extends Controller
         $locale = in_array($locale, ['en', 'es'], true) ? $locale : $application->locale;
         App::setLocale($locale);
 
-        $qr = (new PngWriter())->write(
+        $qr = (new PngWriter)->write(
             new QrCode(
                 data: route('verify', $application->verification_code),
                 size: 220,
@@ -32,7 +32,7 @@ class ApplicationPdfController extends Controller
         $signatureDataUri = null;
         if ($application->signature_path && Storage::disk('public')->exists($application->signature_path)) {
             $signatureDataUri = 'data:image/png;base64,'
-                . base64_encode(Storage::disk('public')->get($application->signature_path));
+                .base64_encode(Storage::disk('public')->get($application->signature_path));
         }
 
         $pdf = Pdf::loadView('pdf.application', [

@@ -72,7 +72,22 @@ return [
             'trailer' => 'Remolque',
             'coverage' => 'Cobertura',
             'user' => 'Usuario',
+            'coveragetype' => 'Catálogo de coberturas',
         ],
+    ],
+
+    'catalog' => [
+        'title' => 'Catálogo de coberturas',
+        'model' => 'Cobertura del catálogo',
+        'name_en' => 'Nombre (inglés)',
+        'name_es' => 'Nombre (español)',
+        'is_active' => 'Disponible en los formularios',
+        'sort_order' => 'Orden',
+        'limit_options' => 'Límites ofrecidos',
+        'aggregate_options' => 'Agregados ofrecidos',
+        'deductible_options' => 'Deducibles ofrecidos',
+        'amounts_hint' => 'Escriba un monto y presione Enter. Si lo deja vacío, el asesor escribe el monto libremente.',
+        'free_amount' => 'Monto libre',
     ],
 
     'stats' => [

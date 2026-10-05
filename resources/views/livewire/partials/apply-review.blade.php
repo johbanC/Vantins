@@ -76,13 +76,15 @@
                     <th class="{{ $th }}">{{ __('app.coverage') }}</th>
                     <th class="{{ $th }}">{{ __('app.limit') }}</th>
                     <th class="{{ $th }}">{{ __('app.deductible') }}</th>
+                    <th class="{{ $th }}">{{ __('app.coverage_details') }}</th>
                 </tr></thead>
                 <tbody class="divide-y divide-white/5">
                     @foreach ($application->coverages as $c)
                         <tr>
-                            <td class="{{ $td }}">{{ $c->coverage ?: '—' }}</td>
-                            <td class="{{ $td }}">{{ $c->limit_amount ?: '—' }}</td>
-                            <td class="{{ $td }}">{{ $c->deductible ?: '—' }}</td>
+                            <td class="{{ $td }}">{{ $c->displayName() ?: '—' }}</td>
+                            <td class="{{ $td }}">{{ $c->displayLimit() }}</td>
+                            <td class="{{ $td }}">{{ \App\Models\Coverage::formatAmount($c->deductible) }}</td>
+                            <td class="{{ $td }}">@foreach ($c->detailLines() as $line)<div>{{ $line }}</div>@endforeach</td>
                         </tr>
                     @endforeach
                 </tbody>
