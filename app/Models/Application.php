@@ -58,6 +58,29 @@ class Application extends Model
         static::deleting(fn (Application $application) => $application->isDeletable());
     }
 
+    /** A new application for a client, prefilled with what the client record already knows. */
+    public static function createForClient(Client $client, ?User $advisor = null): self
+    {
+        return static::create([
+            'client_id' => $client->id,
+            'company_name' => $client->company_name,
+            'company_representative' => $client->contact_name,
+            'email' => $client->email,
+            'phone_number' => $client->phone,
+            'us_dot_number' => $client->us_dot_number,
+            'mailing_address' => $client->mailing_address,
+            'parking_address' => $client->parking_address,
+            'is_demo' => (bool) $client->is_demo,
+            'created_by' => $advisor?->id,
+            'status' => 'created',
+            'locale' => 'en',
+            // The agency block is fixed: Vantins + the advisor creating the application.
+            'agency_name' => config('vantins.agency_name'),
+            'agency_phone' => config('vantins.agency_phone'),
+            'contact_agent_name' => $advisor?->name,
+        ]);
+    }
+
     public function isLocked(): bool
     {
         return in_array($this->status, self::LOCKED_STATUSES, true);
@@ -83,6 +106,11 @@ class Application extends Model
         $total = $down + $monthly * $n;
 
         $this->total_policy_premium = $total > 0 ? round($total, 2) : null;
+    }
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(Client::class);
     }
 
     public function creator(): BelongsTo

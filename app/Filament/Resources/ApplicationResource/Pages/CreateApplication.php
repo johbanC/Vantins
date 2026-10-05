@@ -3,24 +3,18 @@
 namespace App\Filament\Resources\ApplicationResource\Pages;
 
 use App\Filament\Resources\ApplicationResource;
-use Filament\Actions;
+use App\Models\Application;
+use App\Models\Client;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Database\Eloquent\Model;
 
 class CreateApplication extends CreateRecord
 {
     protected static string $resource = ApplicationResource::class;
 
-    protected function mutateFormDataBeforeCreate(array $data): array
+    /** The application starts from a client record; everything else is filled in afterwards. */
+    protected function handleRecordCreation(array $data): Model
     {
-        $data['created_by'] = auth()->id();
-        $data['status'] ??= 'created';
-        $data['locale'] ??= 'en';
-
-        // Agency block is fixed: Vantins + the advisor creating the application.
-        $data['agency_name'] = config('vantins.agency_name');
-        $data['agency_phone'] = config('vantins.agency_phone');
-        $data['contact_agent_name'] ??= auth()->user()?->name;
-
-        return $data;
+        return Application::createForClient(Client::findOrFail($data['client_id']), auth()->user());
     }
 }

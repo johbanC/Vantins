@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ApplicationResource\Pages;
 use App\Filament\Resources\ApplicationResource\RelationManagers;
 use App\Models\Application;
+use App\Models\Client;
 use App\Support\Format;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -48,13 +49,17 @@ class ApplicationResource extends Resource
                 ->columns(2)
                 ->visibleOn('create')
                 ->schema([
-                    Forms\Components\TextInput::make('company_name')
-                        ->label(__('panel.field.company_name'))
-                        ->maxLength(255),
-                    Forms\Components\TextInput::make('email')
-                        ->label(__('panel.field.email'))
-                        ->email()
-                        ->maxLength(255),
+                    Forms\Components\Select::make('client_id')
+                        ->label(__('panel.client.select_client'))
+                        ->helperText(__('panel.client.select_client_hint'))
+                        ->required()
+                        ->searchable()
+                        ->native(false)
+                        ->getSearchResultsUsing(fn (string $search) => Client::query()->search($search)->limit(30)->pluck('company_name', 'id')->all())
+                        ->getOptionLabelUsing(fn ($value) => Client::find($value)?->company_name)
+                        ->createOptionForm(ClientResource::formSchema())
+                        ->createOptionUsing(fn (array $data) => Client::create($data + ['created_by' => auth()->id()])->getKey())
+                        ->columnSpanFull(),
                 ]),
 
             // Everything below is only relevant once the application exists.
@@ -67,6 +72,12 @@ class ApplicationResource extends Resource
                         ->label(__('panel.field.is_demo'))
                         ->visible(fn () => auth()->user()?->isAdmin() ?? false)
                         ->columnSpanFull(),
+                    Forms\Components\Placeholder::make('client_link')
+                        ->label(__('panel.client.select_client'))
+                        ->columnSpanFull()
+                        ->content(fn (?Application $record) => $record?->client
+                            ? new HtmlString('<a class="font-semibold text-primary-500 underline" href="'.e(ClientResource::getUrl('edit', ['record' => $record->client])).'">'.e($record->client->company_name).'</a>')
+                            : '—'),
                     Forms\Components\TextInput::make('company_name')->label(__('panel.field.company_name')),
                     Forms\Components\TextInput::make('company_representative')->label(__('panel.field.company_representative')),
                     Forms\Components\TextInput::make('phone_number')->label(__('panel.field.phone_number'))->tel(),
@@ -198,6 +209,11 @@ class ApplicationResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label(__('panel.status.label'))
                     ->options(static::statusOptions()),
+                Tables\Filters\SelectFilter::make('created_by')
+                    ->label(__('panel.client.agent_filter'))
+                    ->relationship('creator', 'name')
+                    ->searchable()
+                    ->preload(),
                 Tables\Filters\TernaryFilter::make('is_demo')
                     ->label(__('panel.field.is_demo')),
             ])

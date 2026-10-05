@@ -4,8 +4,36 @@ return [
     'resource' => [
         'application' => 'Solicitud',
         'applications' => 'Solicitudes',
+        'client' => 'Cliente',
+        'clients' => 'Clientes',
         'user' => 'Usuario',
         'users' => 'Usuarios',
+    ],
+
+    'client' => [
+        'section_company' => 'Datos del cliente',
+        'section_assignment' => 'Asignación y notas',
+        'contact_name' => 'Persona de contacto',
+        'mc_number' => 'MC #',
+        'assigned_user' => 'Agente asignado',
+        'notes' => 'Notas internas',
+        'applications' => 'Solicitudes',
+        'applications_count' => 'Solicitudes',
+        'new_application' => 'Nueva solicitud',
+        'new_application_done' => 'Solicitud creada para este cliente',
+        'search_placeholder' => 'Buscar por nombre, empresa, correo, teléfono, DOT o MC…',
+        'agent_filter' => 'Agente',
+        'select_client' => 'Cliente',
+        'select_client_hint' => 'Busque un cliente existente (nombre, correo, teléfono, DOT o MC) o créelo aquí mismo.',
+        'duplicate_title' => 'Posible cliente duplicado',
+        'duplicate_hint' => 'Ya existe un cliente con estos datos. Revíselo antes de crear otro.',
+        'duplicate_reason' => [
+            'email' => 'mismo correo',
+            'phone' => 'mismo teléfono',
+            'us_dot_number' => 'mismo US DOT',
+            'mc_number' => 'mismo MC',
+        ],
+        'open' => 'Abrir',
     ],
 
     'stats' => [
@@ -24,7 +52,7 @@ return [
 
     'section' => [
         'client' => 'Cliente',
-        'client_hint' => 'Lo mínimo para identificar la solicitud. El cliente llena el resto desde su enlace.',
+        'client_hint' => 'Elija el cliente de esta solicitud. El asesor llena el resto y el cliente solo revisa y firma.',
         'applicant' => 'Información del Solicitante',
         'schedules_hint' => 'Conductores, vehículos, remolques y coberturas se administran en las pestañas de abajo una vez creada la solicitud.',
         'finance_agency' => 'Finanzas y Agencia',

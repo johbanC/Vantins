@@ -4,8 +4,36 @@ return [
     'resource' => [
         'application' => 'Application',
         'applications' => 'Applications',
+        'client' => 'Client',
+        'clients' => 'Clients',
         'user' => 'User',
         'users' => 'Users',
+    ],
+
+    'client' => [
+        'section_company' => 'Client details',
+        'section_assignment' => 'Assignment and notes',
+        'contact_name' => 'Contact person',
+        'mc_number' => 'MC #',
+        'assigned_user' => 'Assigned agent',
+        'notes' => 'Internal notes',
+        'applications' => 'Applications',
+        'applications_count' => 'Applications',
+        'new_application' => 'New application',
+        'new_application_done' => 'Application created for this client',
+        'search_placeholder' => 'Search by name, company, email, phone, DOT or MC…',
+        'agent_filter' => 'Agent',
+        'select_client' => 'Client',
+        'select_client_hint' => 'Find an existing client (name, email, phone, DOT or MC) or create one right here.',
+        'duplicate_title' => 'Possible duplicate client',
+        'duplicate_hint' => 'A client with these details already exists. Check it before creating another.',
+        'duplicate_reason' => [
+            'email' => 'same email',
+            'phone' => 'same phone',
+            'us_dot_number' => 'same US DOT',
+            'mc_number' => 'same MC',
+        ],
+        'open' => 'Open',
     ],
 
     'stats' => [
@@ -24,7 +52,7 @@ return [
 
     'section' => [
         'client' => 'Client',
-        'client_hint' => 'Just enough to identify this application. The client fills the rest through their link.',
+        'client_hint' => 'Choose the client this application is for. The advisor fills in the rest, and the client only reviews and signs.',
         'applicant' => 'Applicant Information',
         'schedules_hint' => 'Drivers, vehicles, trailers and coverages are managed in the tabs below once the application exists.',
         'finance_agency' => 'Finance & Agency',

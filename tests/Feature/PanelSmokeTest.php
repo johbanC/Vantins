@@ -2,9 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\ApplicationResource\Pages\CreateApplication;
+use App\Filament\Resources\ApplicationResource\Pages\EditApplication;
 use App\Models\Application;
+use App\Models\Client;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class PanelSmokeTest extends TestCase
@@ -48,9 +52,9 @@ class PanelSmokeTest extends TestCase
     {
         $user = $this->staff();
 
-        \Livewire\Livewire::actingAs($user)
-            ->test(\App\Filament\Resources\ApplicationResource\Pages\CreateApplication::class)
-            ->fillForm(['company_name' => 'Acme Freight', 'email' => 'ops@acme.test'])
+        Livewire::actingAs($user)
+            ->test(CreateApplication::class)
+            ->fillForm(['client_id' => Client::create(['company_name' => 'Acme Freight', 'email' => 'ops@acme.test'])->id])
             ->call('create')
             ->assertHasNoFormErrors();
 
@@ -66,8 +70,8 @@ class PanelSmokeTest extends TestCase
     {
         $app = Application::create(['company_name' => 'Acme']);
 
-        \Livewire\Livewire::actingAs($this->staff())
-            ->test(\App\Filament\Resources\ApplicationResource\Pages\EditApplication::class, ['record' => $app->getKey()])
+        Livewire::actingAs($this->staff())
+            ->test(EditApplication::class, ['record' => $app->getKey()])
             ->fillForm([
                 'down_payment' => 4000,
                 'number_of_payments' => 10,
