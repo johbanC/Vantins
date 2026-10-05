@@ -7,6 +7,7 @@ use App\Filament\Resources\ClientResource\Pages;
 use App\Filament\Resources\ClientResource\RelationManagers;
 use App\Models\Application;
 use App\Models\Client;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -69,9 +70,11 @@ class ClientResource extends Resource
                 ->schema([
                     Forms\Components\Select::make('assigned_user_id')
                         ->label(__('panel.client.assigned_user'))
-                        ->relationship('assignedUser', 'name')
+                        // Plain options, not a relationship select: this form also opens inside the "create client" modal
+                        // of the new-application form, where there is no record to resolve a relationship on.
+                        ->options(fn () => User::query()->whereIn('role', ['admin', 'agent'])->orderBy('name')->pluck('name', 'id')->all())
                         ->searchable()
-                        ->preload()
+                        ->native(false)
                         ->default(fn () => auth()->id())
                         ->disabled(fn () => ! auth()->user()?->isAdmin())
                         ->dehydrated(),

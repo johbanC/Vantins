@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Filament\Resources\ApplicationResource\Pages\CreateApplication;
+use App\Filament\Resources\ClientResource;
 use App\Filament\Resources\ClientResource\Pages\CreateClient;
 use App\Filament\Resources\ClientResource\Pages\ListClients;
 use App\Models\Application;
@@ -116,5 +117,18 @@ class ClientTest extends TestCase
 
         $this->actingAs($this->admin())->get("/admin/clients/{$client->id}/edit")->assertOk();
         $this->actingAs($this->admin())->get('/admin/clients')->assertOk()->assertSee($client->company_name);
+    }
+
+    /**
+     * The client form also opens inside the "create client" modal of the new-application form, where
+     * there is no record behind it: a field declared with ->relationship() cannot resolve there and the
+     * modal answers with a 500 ("Call to a member function isRelation() on null").
+     */
+    public function test_the_client_form_has_no_relationship_fields_so_it_works_inside_a_modal(): void
+    {
+        $method = new \ReflectionMethod(ClientResource::class, 'formSchema');
+        $source = implode('', array_slice(file($method->getFileName()), $method->getStartLine() - 1, $method->getEndLine() - $method->getStartLine() + 1));
+
+        $this->assertStringNotContainsString('->relationship(', $source, 'the client form opens inside a modal with no record: use plain options');
     }
 }
