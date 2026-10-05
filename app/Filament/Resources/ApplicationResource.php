@@ -49,8 +49,16 @@ class ApplicationResource extends Resource
             ->all();
     }
 
+    /** Signed / issued applications are frozen: every editable section is disabled. */
+    protected static function lockedCallback(): \Closure
+    {
+        return fn (?Application $record): bool => (bool) $record?->isLocked();
+    }
+
     public static function form(Form $form): Form
     {
+        $locked = static::lockedCallback();
+
         return $form->schema([
             // Shown only when creating: the minimum to identify the application.
             Forms\Components\Section::make(__('panel.section.client'))
@@ -76,6 +84,7 @@ class ApplicationResource extends Resource
                 ->description(__('panel.section.schedules_hint'))
                 ->columns(2)
                 ->hiddenOn('create')
+                ->disabled($locked)
                 ->schema([
                     Forms\Components\Toggle::make('is_demo')
                         ->label(__('panel.field.is_demo'))
@@ -105,6 +114,7 @@ class ApplicationResource extends Resource
                 ->description(__('panel.section.finance_hint'))
                 ->columns(2)
                 ->hiddenOn('create')
+                ->disabled($locked)
                 ->schema([
                     Forms\Components\TextInput::make('down_payment')
                         ->label(__('panel.field.down_payment'))
@@ -135,6 +145,7 @@ class ApplicationResource extends Resource
             Forms\Components\Section::make(__('panel.section.agency'))
                 ->columns(2)
                 ->hiddenOn('create')
+                ->disabled($locked)
                 ->schema([
                     Forms\Components\TextInput::make('agency_name')
                         ->label(__('panel.field.agency_name'))
@@ -252,6 +263,10 @@ class ApplicationResource extends Resource
             ->label(__('panel.action.pdf'))
             ->icon('heroicon-o-document-arrow-down')
             ->color('primary')
+            // No branded document exists until the client has signed: before that the data could still change.
+            ->disabled(fn (Application $record) => ! $record->canGeneratePdf())
+            ->tooltip(fn (Application $record) => $record->canGeneratePdf() ? null : __('panel.action.pdf_disabled_hint'))
+            ->extraAttributes(['style' => 'pointer-events: auto'])
             ->modalHeading(__('panel.action.pdf_heading'))
             ->modalSubmitAction(false)
             ->modalCancelActionLabel(__('filament-actions::modal.actions.cancel.label'))
@@ -259,6 +274,26 @@ class ApplicationResource extends Resource
                 'en' => route('applications.pdf', ['token' => $record->token, 'locale' => 'en']),
                 'es' => route('applications.pdf', ['token' => $record->token, 'locale' => 'es']),
                 'signed' => $record->isSigned() ? route('applications.signed', $record->token) : null,
+            ]));
+    }
+
+    /** The welcome letter follows the signed document: same availability rule as the PDF. */
+    public static function welcomeLetterAction(string $actionClass = Tables\Actions\Action::class)
+    {
+        return $actionClass::make('welcomeLetter')
+            ->label(__('panel.action.welcome_letter'))
+            ->icon('heroicon-o-envelope')
+            ->color('primary')
+            ->disabled(fn (Application $record) => ! $record->canSendWelcomeLetter())
+            ->tooltip(fn (Application $record) => $record->canSendWelcomeLetter() ? null : __('panel.action.pdf_disabled_hint'))
+            ->extraAttributes(['style' => 'pointer-events: auto'])
+            ->modalHeading(__('panel.action.welcome_letter_heading'))
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel(__('filament-actions::modal.actions.cancel.label'))
+            ->modalContent(fn (Application $record) => view('filament.welcome-letter', [
+                'en' => route('applications.welcome-letter', ['token' => $record->token, 'locale' => 'en']),
+                'es' => route('applications.welcome-letter', ['token' => $record->token, 'locale' => 'es']),
+                'sentAt' => $record->welcome_letter_sent_at,
             ]));
     }
 
@@ -335,6 +370,7 @@ class ApplicationResource extends Resource
                 Tables\Columns\TextColumn::make('us_dot_number')->label(__('panel.field.us_dot_number'))->searchable()->toggleable(),
                 Tables\Columns\TextColumn::make('total_policy_premium')->label(__('panel.field.total_policy_premium'))->money('USD')->sortable()->toggleable(),
                 Tables\Columns\TextColumn::make('signed_at')->label(__('panel.field.signed_at'))->dateTime()->sortable()->toggleable(),
+                Tables\Columns\TextColumn::make('welcome_letter_sent_at')->label(__('panel.field.welcome_letter_sent_at'))->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true)->placeholder('—'),
                 Tables\Columns\TextColumn::make('created_at')->label(__('panel.field.created_at'))->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
@@ -370,6 +406,7 @@ class ApplicationResource extends Resource
                 static::changeStatusAction(),
                 static::copyLinkAction(),
                 static::pdfAction(),
+                static::welcomeLetterAction(),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])

@@ -35,7 +35,7 @@ class Application extends Model
      */
     public const CHANGEABLE_AFTER_SIGNING = [
         'status', 'in_review_at', 'quoted_at', 'issued_at', 'selected_quote_id', 'client_id', 'pdf_path',
-        'token', 'link_expires_at', 'link_revoked_at', 'link_pin', 'is_demo', 'locale', 'superseded_at', 'updated_at',
+        'token', 'link_expires_at', 'link_revoked_at', 'link_pin', 'is_demo', 'locale', 'superseded_at', 'welcome_letter_sent_at', 'updated_at',
     ];
 
     protected $guarded = ['id'];
@@ -58,6 +58,7 @@ class Application extends Model
         'quoted_at' => 'datetime',
         'signed_at' => 'datetime',
         'issued_at' => 'datetime',
+        'welcome_letter_sent_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -280,6 +281,42 @@ class Application extends Model
         return $this->status === 'created';
     }
 
+    /**
+     * The branded PDF is only available once the client has signed: before that
+     * the application is still editable, so a generated document could show data
+     * the client never agreed to.
+     */
+    public function canGeneratePdf(): bool
+    {
+        return $this->isLocked() && (bool) $this->signature_path;
+    }
+
+    /** The welcome letter follows the signed document: same availability rule. */
+    public function canSendWelcomeLetter(): bool
+    {
+        return $this->canGeneratePdf();
+    }
+
+    /** Person the documents are addressed to. */
+    public function recipientName(): string
+    {
+        return $this->signer_name
+            ?: $this->company_representative
+            ?: $this->company_name
+            ?: '';
+    }
+
+    /**
+     * Stamp the moment the welcome letter first goes out. The date printed on
+     * the letter is this timestamp, so it stays fixed on later downloads.
+     */
+    public function markWelcomeLetterSent(): void
+    {
+        if (! $this->welcome_letter_sent_at) {
+            $this->forceFill(['welcome_letter_sent_at' => now()])->save();
+        }
+    }
+
     /** Total Policy Premium = Down Payment + (Monthly Payment x Number of Payments). */
     public function applyPaymentPlan(): void
     {
@@ -349,6 +386,10 @@ class Application extends Model
     public function markStatus(string $status): void
     {
         abort_unless(in_array($status, self::STATUSES, true), 422);
+
+        // A signed document is a closed record: it moves forward through review, quote and issue (or is
+        // cancelled), but never back to the editable, deletable "created" state.
+        abort_if($this->isLocked() && $status === 'created', 403);
 
         $column = match ($status) {
             'signed' => 'signed_at',

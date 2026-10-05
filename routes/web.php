@@ -51,6 +51,11 @@ Route::get('/applications/{token}/pdf/{locale?}', [ApplicationPdfController::cla
 // The copy the client signed, exactly as it was (tokenised, like the application link).
 Route::get('/applications/{token}/signed', [ApplicationPdfController::class, 'signed'])->name('applications.signed');
 
+// Welcome letter, sent to the client once the document is signed.
+Route::get('/applications/{token}/welcome-letter/{locale?}', [ApplicationPdfController::class, 'welcomeLetter'])
+    ->whereIn('locale', ['en', 'es'])
+    ->name('applications.welcome-letter');
+
 // Public document verification (QR target).
 Route::get('/verify/{code}', function (string $code) {
     $application = Application::where('verification_code', $code)->first();

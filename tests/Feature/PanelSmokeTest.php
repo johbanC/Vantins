@@ -83,10 +83,16 @@ class PanelSmokeTest extends TestCase
         $this->assertEquals(18119.50, $app->fresh()->total_policy_premium);
     }
 
-    public function test_pdf_is_available_in_both_languages(): void
+    public function test_pdf_is_available_in_both_languages_once_signed(): void
     {
         $app = Application::create(['company_name' => 'Acme', 'locale' => 'es']);
         $app->coverages()->create(['coverage' => 'Liability', 'premium' => 1000]);
+
+        // Not signed yet: no document.
+        $this->get('/applications/'.$app->token.'/pdf')->assertForbidden();
+
+        $app->forceFill(['signature_path' => 'signatures/'.$app->token.'.png'])->save();
+        $app->markStatus('signed');
 
         foreach (['en', 'es', null] as $locale) {
             $url = '/applications/'.$app->token.'/pdf'.($locale ? "/{$locale}" : '');

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Application;
 use App\Support\ApplicationAccess;
 use App\Support\PdfDocuments;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
 
 class ApplicationPdfController extends Controller
@@ -17,6 +19,10 @@ class ApplicationPdfController extends Controller
         if ($denied = $this->denied($application, live: true)) {
             return $denied;
         }
+
+        // No document exists until the client has signed. Before that the
+        // application is still editable and a PDF could misrepresent it.
+        abort_unless($application->canGeneratePdf(), 403, __('app.pdf_not_ready'));
 
         // Both language versions are always available; default to how it was filled.
         $locale = in_array($locale, ['en', 'es'], true) ? $locale : $application->locale;
@@ -58,5 +64,34 @@ class ApplicationPdfController extends Controller
             'Vantins-'.str($application->company_name ?: 'application')->slug().'-signed.pdf',
             ['Content-Type' => 'application/pdf'],
         );
+    }
+
+    public function welcomeLetter(string $token, ?string $locale = null)
+    {
+        $application = Application::where('token', $token)->firstOrFail();
+
+        if ($denied = $this->denied($application, live: true)) {
+            return $denied;
+        }
+
+        // Same rule as the branded PDF: only after the client has signed.
+        abort_unless($application->canSendWelcomeLetter(), 403, __('app.pdf_not_ready'));
+
+        $locale = in_array($locale, ['en', 'es'], true) ? $locale : $application->locale;
+        App::setLocale($locale);
+
+        // The letter carries the date it first went out and keeps it afterwards.
+        $application->markWelcomeLetterSent();
+        PdfDocuments::logDownload($application, 'welcome_letter_'.$locale);
+
+        $pdf = Pdf::loadView('pdf.welcome-letter', [
+            'application' => $application,
+            'recipient' => $application->recipientName(),
+            'sentAt' => $application->welcome_letter_sent_at,
+        ])->setPaper('letter');
+
+        $name = 'Vantins-welcome-'.str($application->company_name ?: 'client')->slug().'-'.$locale.'.pdf';
+
+        return $pdf->stream($name);
     }
 }

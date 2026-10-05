@@ -64,6 +64,10 @@ return [
     'disclosure_accept' => 'He leído y acepto la declaración anterior.',
     'signer_name' => 'Asegurado — nombre completo',
     'signature' => 'Firma',
+    'legal_representative' => 'Representante legal',
+    'date' => 'Fecha',
+    'reference' => 'Referencia',
+    'verify_qr' => 'Para verificar la validez de este documento, escanee este código QR.',
 
     'thanks_title' => 'Documento firmado',
     'thanks_body' => 'Gracias. Recibimos su documento firmado.',
@@ -205,4 +209,11 @@ return [
         'vehicle_old' => 'Este vehículo tiene más de 30 años.',
         'pd_deductible_range' => 'El deducible usual de Daño Físico está entre $:min y $:max.',
     ],
+    'pdf_not_ready' => 'El PDF solo está disponible después de que el cliente firme el documento.',
+
+    'welcome_letter_title' => 'Carta de Bienvenida',
+    'welcome_letter_p1' => 'Gracias por elegir a Vantins Insurance Agency LLC para representar la protección de sus bienes este año con el mejor seguro comercial. Nuestra compañía le brindará todos los servicios necesarios durante la vigencia de su póliza.',
+    'welcome_letter_p2' => 'Nuestra misión es dedicarnos a brindarle el servicio más completo y actualizado a usted, los transportistas.',
+    'welcome_letter_p3' => 'Esperamos que se sienta cómodo con nuestros servicios y viva una nueva experiencia para contarles a sus amigos, colegas y familiares. No dude en contactarnos por la línea de su asesor de confianza o nuestra línea de atención al cliente +1 (754) 290-0308.',
+    'welcome_letter_signoff' => 'Vantins Insurance Agency LLC',
 ];

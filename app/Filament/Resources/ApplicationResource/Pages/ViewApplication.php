@@ -16,6 +16,7 @@ class ViewApplication extends ViewRecord
             ApplicationResource::revisionAction(Actions\Action::class),
             ApplicationResource::changeStatusAction(Actions\Action::class),
             ApplicationResource::pdfAction(Actions\Action::class),
+            ApplicationResource::welcomeLetterAction(Actions\Action::class),
             ApplicationResource::copyLinkAction(Actions\Action::class),
             ApplicationResource::renewLinkAction(Actions\Action::class),
             ApplicationResource::revokeLinkAction(Actions\Action::class),

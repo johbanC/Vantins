@@ -168,6 +168,9 @@ class LinkSecurityTest extends TestCase
     public function test_the_pdfs_obey_the_same_rules(): void
     {
         $application = $this->application(withDriver: true);
+        // The branded PDF exists only once the client has signed.
+        $application->forceFill(['signature_path' => 'signatures/x.png'])->save();
+        $application->markStatus('signed');
         $pdf = route('applications.pdf', $application->token);
 
         // Without the PIN the client is sent to the page that asks for it.
@@ -177,9 +180,10 @@ class LinkSecurityTest extends TestCase
         Livewire::test(ApplyForm::class, ['token' => $application->token])->set('pin', $application->link_pin)->call('verifyPin');
         $this->get($pdf)->assertOk()->assertHeader('content-type', 'application/pdf');
 
-        // ... until the link stops being usable.
-        $application->revokeLink();
-        $this->get($pdf)->assertForbidden();
+        // A link that is not yet signed has no PDF at all (it would show data the client has not agreed to).
+        $unsigned = $this->application();
+        $this->actingAs($this->agent)->get(route('applications.pdf', $unsigned->token))->assertForbidden();
+        auth()->logout();
 
         // Staff download regardless.
         $this->actingAs($this->agent)->get($pdf)->assertOk();

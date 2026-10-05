@@ -191,6 +191,10 @@ class CoverageCatalogTest extends TestCase
         $app->update(['locale' => 'en']);
         $this->get("/apply/{$app->token}")->assertSee('Auto Liability');
 
+        // The branded PDF exists only once the client has signed.
+        $this->get("/applications/{$app->token}/pdf/es")->assertForbidden();
+        $app->forceFill(['signature_path' => 'signatures/x.png'])->save();
+        $app->markStatus('signed');
         $this->get("/applications/{$app->token}/pdf/es")->assertOk();
     }
 

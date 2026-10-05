@@ -12,6 +12,17 @@ class EditApplication extends EditRecord
 {
     protected static string $resource = ApplicationResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return $this->record->isLocked() ? __('panel.locked_notice') : null;
+    }
+
+    /** A signed / issued application is frozen: no Save button. */
+    protected function getFormActions(): array
+    {
+        return $this->record->isLocked() ? [] : parent::getFormActions();
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -26,6 +37,9 @@ class EditApplication extends EditRecord
                 ->label(__('panel.action.pdf'))
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('primary')
+                ->disabled(fn () => ! $this->record->canGeneratePdf())
+                ->tooltip(fn () => $this->record->canGeneratePdf() ? null : __('panel.action.pdf_disabled_hint'))
+                ->extraAttributes(['style' => 'pointer-events: auto'])
                 ->modalHeading(__('panel.action.pdf_heading'))
                 ->modalSubmitAction(false)
                 ->modalCancelActionLabel(__('filament-actions::modal.actions.cancel.label'))
@@ -34,6 +48,7 @@ class EditApplication extends EditRecord
                     'es' => route('applications.pdf', ['token' => $this->record->token, 'locale' => 'es']),
                     'signed' => $this->record->isLocked() ? route('applications.signed', $this->record->token) : null,
                 ])),
+            ApplicationResource::welcomeLetterAction(Actions\Action::class),
             ApplicationResource::renewLinkAction(Actions\Action::class),
             ApplicationResource::revokeLinkAction(Actions\Action::class),
             Actions\Action::make('changeStatus')

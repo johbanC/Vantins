@@ -33,6 +33,9 @@ class PdfDocuments
             'signature' => $application->signature_path && Storage::disk('public')->exists($application->signature_path)
                 ? 'data:image/png;base64,'.base64_encode(Storage::disk('public')->get($application->signature_path))
                 : null,
+            'representativeSignature' => static::representativeSignature(),
+            'representativeName' => config('vantins.representative_name'),
+            'representativeTitle' => config('vantins.representative_title'),
         ])->setPaper('letter'));
     }
 
@@ -143,6 +146,19 @@ class PdfDocuments
     public static function qr(string $url): string
     {
         return (new PngWriter)->write(new QrCode(data: $url, size: 220, margin: 4))->getDataUri();
+    }
+
+    /** The legal representative's countersignature (a static image shipped with the app), or null when absent. */
+    protected static function representativeSignature(): ?string
+    {
+        $relative = config('vantins.representative_signature');
+        $path = $relative ? public_path($relative) : null;
+
+        if (! $path || ! is_file($path)) {
+            return null;
+        }
+
+        return 'data:image/'.pathinfo($path, PATHINFO_EXTENSION).';base64,'.base64_encode(file_get_contents($path));
     }
 
     protected static function signatureUri(?string $path): ?string

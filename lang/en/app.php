@@ -64,6 +64,10 @@ return [
     'disclosure_accept' => 'I have read and accept the disclosure above.',
     'signer_name' => 'Insured — full name',
     'signature' => 'Signature',
+    'legal_representative' => 'Legal representative',
+    'date' => 'Date',
+    'reference' => 'Reference',
+    'verify_qr' => 'To verify the validity of this document, scan this QR code.',
 
     'thanks_title' => 'Document signed',
     'thanks_body' => 'Thank you. Your signed document has been received.',
@@ -205,4 +209,11 @@ return [
         'vehicle_old' => 'This vehicle is over 30 years old.',
         'pd_deductible_range' => 'The usual Physical Damage deductible is between $:min and $:max.',
     ],
+    'pdf_not_ready' => 'The PDF is available only after the client has signed the document.',
+
+    'welcome_letter_title' => 'Welcome Letter',
+    'welcome_letter_p1' => 'Thank you for choosing Vantins Insurance Agency LLC to represent the protection of your assets this year with the best commercial insurance. Our company will provide you with all the necessary services during the life of your policy.',
+    'welcome_letter_p2' => 'Our mission is to dedicate ourselves to providing the most complete and up to date service to you, the truckers.',
+    'welcome_letter_p3' => 'We hope you feel comfortable with our services and have a new experience to tell your friends, colleagues and family. Do not hesitate to contact us on the line of your trusted advisor or our customer service line +1 (754) 290-0308.',
+    'welcome_letter_signoff' => 'Vantins Insurance Agency LLC',
 ];

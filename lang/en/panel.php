@@ -291,6 +291,8 @@ return [
         'cancelled' => 'Cancelled',
     ],
 
+    'locked_notice' => 'This application has been signed by the client. The finance proposal, coverages and schedules are now read-only and cannot be edited or deleted.',
+
     'section' => [
         'client' => 'Client',
         'client_hint' => 'Choose the client this application is for. The advisor fills in the rest, and the client only reviews and signs.',
@@ -335,6 +337,7 @@ return [
         'created_by' => 'Created by',
         'created_at' => 'Created',
         'signed_at' => 'Signed',
+        'welcome_letter_sent_at' => 'Welcome letter sent',
         'not_signed' => 'Not signed yet',
     ],
 
@@ -346,7 +349,12 @@ return [
         'copy' => 'Copy',
         'copied' => 'Copied!',
         'pdf' => 'PDF',
+        'pdf_disabled_hint' => 'Disabled until the client signs the document.',
         'pdf_heading' => 'Download PDF',
+        'welcome_letter' => 'Welcome letter',
+        'welcome_letter_heading' => 'Send the welcome letter',
+        'welcome_letter_hint' => 'Available in both languages. The date on the letter is set the first time it is generated.',
+        'welcome_letter_sent_on' => 'Already sent on :date.',
         'pdf_hint' => 'The same document is available in both languages.',
         'pdf_es' => 'Spanish PDF',
         'pdf_en' => 'English PDF',

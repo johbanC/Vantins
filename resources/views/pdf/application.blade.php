@@ -99,6 +99,9 @@
         'signedAt' => $application->disclosure_accepted_at ? \App\Support\Format::date($application->disclosure_accepted_at) : null,
         'qr' => $qr,
         'qrCaption' => __('app.qr_caption'),
+        'representativeName' => $representativeName ?? null,
+        'representativeTitle' => $representativeTitle ?? null,
+        'representativeSignature' => $representativeSignature ?? null,
     ])
 </div>
 
