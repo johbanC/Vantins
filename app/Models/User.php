@@ -17,7 +17,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use \App\Models\Concerns\RecordsActivity, HasFactory, Notifiable;
 
     /**
      * @return array<string, string>

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsActivity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +13,7 @@ use Illuminate\Support\Str;
 class Application extends Model
 {
     use HasFactory;
+    use RecordsActivity;
 
     public const STATUSES = [
         'created',    // auto: application created, link ready to send
@@ -133,6 +135,11 @@ class Application extends Model
         $this->total_policy_premium = $total > 0 ? round($total, 2) : null;
     }
 
+    public function activity(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class, 'application_id')->latest('id');
+    }
+
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
@@ -188,5 +195,11 @@ class Application extends Model
             $this->{$column} = now();
         }
         $this->save();
+    }
+
+    /** @return array{application_id: int, client_id: ?int} */
+    public function auditContext(): array
+    {
+        return ['application_id' => $this->getKey(), 'client_id' => $this->client_id];
     }
 }

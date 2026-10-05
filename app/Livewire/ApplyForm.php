@@ -91,7 +91,9 @@ class ApplyForm extends Component
                 ->map(fn ($row) => $this->rowToArray($row, DataQuality::ROW_FIELDS[$rel]))
                 ->all();
         }
-        $this->coverages = $this->application->coverages->map->only(['coverage', 'limit_amount', 'deductible'])->toArray();
+        $this->coverages = $this->application->coverages
+            ->map(fn ($row) => $this->rowToArray($row, ['coverage', 'limit_amount', 'deductible']))
+            ->all();
 
         $this->signerName = $this->application->signer_name ?? '';
     }
@@ -105,7 +107,7 @@ class ApplyForm extends Component
     /** Plain, form-friendly values: dates as Y-m-d, no objects in the Livewire state. */
     protected function rowToArray($row, array $fields): array
     {
-        return collect($fields)->mapWithKeys(function ($f) use ($row) {
+        return ['id' => $row->id] + collect($fields)->mapWithKeys(function ($f) use ($row) {
             $value = $row->{$f};
 
             return [$f => $value instanceof \DateTimeInterface ? $value->format('Y-m-d') : $value];
@@ -152,10 +154,18 @@ class ApplyForm extends Component
         $this->application->refresh();
     }
 
+    /**
+     * Save the rows of one list in place: rows that already exist (they carry their id) are
+     * updated, new ones created, and the ones the advisor removed deleted. Nothing is
+     * deleted and recreated, so the audit trail only records what really changed.
+     */
     protected function syncRows(string $relation, array $fields): void
     {
-        $this->application->{$relation}()->delete();
-        foreach (array_values($this->{$relation}) as $i => $row) {
+        $existing = $this->application->{$relation}()->get()->keyBy('id');
+        $this->{$relation} = array_values($this->{$relation});
+        $keep = [];
+
+        foreach ($this->{$relation} as $i => $row) {
             $payload = collect($fields)
                 ->mapWithKeys(function ($f) use ($row) {
                     $value = $row[$f] ?? null;
@@ -172,12 +182,28 @@ class ApplyForm extends Component
                     return [$f => $value];
                 })
                 ->toArray();
+
+            // A blank row is dropped (and deleted if it used to exist).
             if (collect($payload)->filter()->isEmpty()) {
+                unset($this->{$relation}[$i]['id']);
+
                 continue;
             }
+
             $payload['sort_order'] = $i;
-            $this->application->{$relation}()->create($payload);
+            $model = $existing->get($row['id'] ?? null);
+
+            if ($model) {
+                $model->update($payload);
+            } else {
+                $model = $this->application->{$relation}()->create($payload);
+            }
+
+            $keep[] = $model->id;
+            $this->{$relation}[$i]['id'] = $model->id;
         }
+
+        $existing->except($keep)->each->delete();
     }
 
     /** Hard validation of what the advisor typed in one step. Soft warnings never block. */

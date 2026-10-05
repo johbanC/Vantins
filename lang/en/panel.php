@@ -45,6 +45,36 @@ return [
         'password_hint' => 'Leave blank to keep the current password.',
     ],
 
+    'audit' => [
+        'title' => 'History',
+        'resource' => 'Audit log',
+        'when' => 'When',
+        'who' => 'Who',
+        'event' => 'Action',
+        'record' => 'Record',
+        'detail' => 'Details',
+        'guest' => 'Client (through their link)',
+        'hidden' => '(protected data)',
+        'user_filter' => 'User',
+        'event_filter' => 'Action',
+        'type_filter' => 'Record type',
+        'events' => [
+            'created' => 'Created',
+            'updated' => 'Updated',
+            'deleted' => 'Deleted',
+            'status_changed' => 'Changed the status',
+        ],
+        'subjects' => [
+            'application' => 'Application',
+            'client' => 'Client',
+            'driver' => 'Driver',
+            'vehicle' => 'Vehicle',
+            'trailer' => 'Trailer',
+            'coverage' => 'Coverage',
+            'user' => 'User',
+        ],
+    ],
+
     'stats' => [
         'total' => 'Total applications',
     ],

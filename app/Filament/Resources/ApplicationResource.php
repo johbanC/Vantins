@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\RelationManagers\ActivityRelationManager;
 use App\Filament\Resources\ApplicationResource\Pages;
 use App\Filament\Resources\ApplicationResource\RelationManagers;
 use App\Models\Application;
@@ -286,6 +287,7 @@ class ApplicationResource extends Resource
             RelationManagers\VehiclesRelationManager::class,
             RelationManagers\TrailersRelationManager::class,
             RelationManagers\CoveragesRelationManager::class,
+            ActivityRelationManager::class,
         ];
     }
 

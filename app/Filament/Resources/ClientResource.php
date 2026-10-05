@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\RelationManagers\ActivityRelationManager;
 use App\Filament\Resources\ClientResource\Pages;
 use App\Filament\Resources\ClientResource\RelationManagers;
 use App\Models\Application;
@@ -172,6 +173,7 @@ class ClientResource extends Resource
     {
         return [
             RelationManagers\ApplicationsRelationManager::class,
+            ActivityRelationManager::class,
         ];
     }
 

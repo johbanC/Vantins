@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsActivity;
 use Database\Factories\ClientFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,6 +15,8 @@ class Client extends Model
 {
     /** @use HasFactory<ClientFactory> */
     use HasFactory;
+
+    use RecordsActivity;
 
     protected $guarded = ['id'];
 
@@ -143,6 +146,11 @@ class Client extends Model
         return $this->hasMany(Application::class)->latest();
     }
 
+    public function activity(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class, 'client_id')->latest('id');
+    }
+
     public function assignedUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_user_id');
@@ -151,5 +159,11 @@ class Client extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /** @return array{application_id: null, client_id: int} */
+    public function auditContext(): array
+    {
+        return ['application_id' => null, 'client_id' => $this->getKey()];
     }
 }

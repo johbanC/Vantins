@@ -45,6 +45,36 @@ return [
         'password_hint' => 'Déjela en blanco para conservar la actual.',
     ],
 
+    'audit' => [
+        'title' => 'Historial',
+        'resource' => 'Registro de auditoría',
+        'when' => 'Cuándo',
+        'who' => 'Quién',
+        'event' => 'Acción',
+        'record' => 'Registro',
+        'detail' => 'Detalle',
+        'guest' => 'Cliente (por su enlace)',
+        'hidden' => '(dato protegido)',
+        'user_filter' => 'Usuario',
+        'event_filter' => 'Acción',
+        'type_filter' => 'Tipo de registro',
+        'events' => [
+            'created' => 'Creó',
+            'updated' => 'Modificó',
+            'deleted' => 'Eliminó',
+            'status_changed' => 'Cambió el estatus',
+        ],
+        'subjects' => [
+            'application' => 'Solicitud',
+            'client' => 'Cliente',
+            'driver' => 'Conductor',
+            'vehicle' => 'Vehículo',
+            'trailer' => 'Remolque',
+            'coverage' => 'Cobertura',
+            'user' => 'Usuario',
+        ],
+    ],
+
     'stats' => [
         'total' => 'Solicitudes totales',
     ],
