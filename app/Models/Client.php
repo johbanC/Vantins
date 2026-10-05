@@ -146,6 +146,28 @@ class Client extends Model
         return $this->hasMany(Application::class)->latest();
     }
 
+    public function quotes(): HasMany
+    {
+        return $this->hasMany(Quote::class)->latest('id');
+    }
+
+    /**
+     * Where this client is commercially: the furthest pipeline stage among the current quotes,
+     * or the way the last ones closed when nothing is open. Null when there is no quote yet.
+     */
+    public function commercialStage(): ?string
+    {
+        $current = $this->quotes->whereNull('superseded_at');
+
+        $furthest = $current->map(fn (Quote $q) => array_search($q->stage, Quote::STAGES, true))->filter(fn ($i) => $i !== false)->max();
+
+        if ($furthest !== null) {
+            return Quote::STAGES[$furthest];
+        }
+
+        return $current->isEmpty() ? null : 'lost';
+    }
+
     public function activity(): HasMany
     {
         return $this->hasMany(ActivityLog::class, 'client_id')->latest('id');

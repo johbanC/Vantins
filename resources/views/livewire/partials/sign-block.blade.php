@@ -3,12 +3,12 @@
     $label = 'mb-1 block text-xs font-medium uppercase tracking-wide text-white/60';
 @endphp
 
-<h3 class="mb-3 text-base font-semibold">{{ __('app.disclosure') }}</h3>
-<p class="mb-4 text-sm leading-relaxed text-white/70">{{ __('app.disclosure_body') }}</p>
+<h3 class="mb-3 text-base font-semibold">{{ $disclosureTitle ?? __('app.disclosure') }}</h3>
+<p class="mb-4 text-sm leading-relaxed text-white/70">{{ $disclosureBody ?? __('app.disclosure_body') }}</p>
 
 <label class="mb-4 flex items-start gap-3 text-sm">
     <input type="checkbox" wire:model="disclosureAccepted" class="mt-1 h-4 w-4 rounded border-white/30 bg-white/10 text-brand">
-    <span>{{ __('app.disclosure_accept') }}</span>
+    <span>{{ $disclosureAccept ?? __('app.disclosure_accept') }}</span>
 </label>
 @error('disclosureAccepted') <p class="mb-3 text-xs text-red-300">{{ $message }}</p> @enderror
 

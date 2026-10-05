@@ -140,6 +140,17 @@ class Application extends Model
         return $this->hasMany(ActivityLog::class, 'application_id')->latest('id');
     }
 
+    public function quotes(): HasMany
+    {
+        return $this->hasMany(Quote::class)->latest('id');
+    }
+
+    /** The alternative currently in front of the client. */
+    public function selectedQuote(): BelongsTo
+    {
+        return $this->belongsTo(Quote::class, 'selected_quote_id');
+    }
+
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);

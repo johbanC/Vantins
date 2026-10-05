@@ -136,6 +136,12 @@ class ClientResource extends Resource
                 Tables\Columns\TextColumn::make('phone')->label(__('panel.field.phone_number')),
                 Tables\Columns\TextColumn::make('us_dot_number')->label(__('panel.field.us_dot_number')),
                 Tables\Columns\TextColumn::make('mc_number')->label(__('panel.client.mc_number'))->toggleable(),
+                Tables\Columns\TextColumn::make('commercial_stage')
+                    ->label(__('panel.quote.commercial_status'))
+                    ->badge()
+                    ->state(fn (Client $r) => $r->commercialStage())
+                    ->color(fn (?string $state) => $state ? QuoteResource::stageColor($state) : 'gray')
+                    ->formatStateUsing(fn (?string $state) => $state ? __('panel.quote.stages.'.$state) : '—'),
                 Tables\Columns\TextColumn::make('assignedUser.name')->label(__('panel.client.assigned_user')),
                 Tables\Columns\TextColumn::make('applications_count')
                     ->label(__('panel.client.applications_count'))
@@ -143,6 +149,7 @@ class ClientResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')->label(__('panel.field.created_at'))->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->modifyQueryUsing(fn (Builder $query) => $query->with('quotes'))
             ->searchPlaceholder(__('panel.client.search_placeholder'))
             ->defaultSort('created_at', 'desc')
             ->filters([

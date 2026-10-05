@@ -22,7 +22,7 @@ trait RecordsActivity
 
     /** Personal identifiers: the log says they changed, never to what. */
     protected static array $auditAlwaysRedact = [
-        'dob', 'cdl_number', 'password', 'signature_path',
+        'dob', 'cdl_number', 'password', 'signature_path', 'accepted_signature_path', 'accepted_snapshot', 'acceptance_token',
     ];
 
     public static function bootRecordsActivity(): void
@@ -36,7 +36,11 @@ trait RecordsActivity
                 return;
             }
 
-            $event = array_key_exists('status', $changes) ? 'status_changed' : 'updated';
+            $event = match (true) {
+                array_key_exists('status', $changes) => 'status_changed',
+                array_key_exists('stage', $changes) => 'stage_changed',
+                default => 'updated',
+            };
             ActivityLog::record($model, $event, $changes);
         });
 

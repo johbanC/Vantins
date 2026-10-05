@@ -287,6 +287,7 @@ class ApplicationResource extends Resource
             RelationManagers\VehiclesRelationManager::class,
             RelationManagers\TrailersRelationManager::class,
             RelationManagers\CoveragesRelationManager::class,
+            RelationManagers\QuotesRelationManager::class,
             ActivityRelationManager::class,
         ];
     }
