@@ -14,6 +14,8 @@ class ViewQuote extends ViewRecord
     {
         return [
             QuoteResource::moveAction(Actions\Action::class),
+            QuoteResource::pdfAction(Actions\Action::class),
+            QuoteResource::carrierDisclosureAction(Actions\Action::class),
             ...QuoteResource::linkActions(Actions\Action::class),
             QuoteResource::reviseAction(Actions\Action::class),
             Actions\EditAction::make(),

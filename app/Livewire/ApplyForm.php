@@ -6,6 +6,7 @@ use App\Models\Application;
 use App\Models\CoverageType;
 use App\Support\CoverageRules;
 use App\Support\DataQuality;
+use App\Support\PdfDocuments;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
@@ -405,6 +406,13 @@ class ApplyForm extends Component
         ])->save();
 
         $this->application->markStatus('signed');
+
+        // Keep the PDF exactly as it was signed. A rendering problem must not lose the signature.
+        try {
+            PdfDocuments::storeSignedApplication($this->application->refresh());
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         $this->done = 'signed';
         $this->locked = true;

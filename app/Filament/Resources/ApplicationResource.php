@@ -269,6 +269,7 @@ class ApplicationResource extends Resource
                     ->modalContent(fn (Application $record) => view('filament.application-pdf', [
                         'en' => route('applications.pdf', ['token' => $record->token, 'locale' => 'en']),
                         'es' => route('applications.pdf', ['token' => $record->token, 'locale' => 'es']),
+                        'signed' => $record->isLocked() ? route('applications.signed', $record->token) : null,
                     ])),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),

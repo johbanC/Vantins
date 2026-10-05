@@ -197,6 +197,15 @@ return [
         'filter_agent' => 'Agente',
         'open_quote' => 'Abrir cotización',
         'no_quotes' => 'Aún no hay cotizaciones.',
+        'pdf_proposal' => 'Propuesta formal',
+        'pdf_binder' => 'Binder',
+        'pdf_signed' => 'Copia firmada (tal como la firmó el cliente)',
+        'pdf_application_signed' => 'Copia firmada de la solicitud (tal como la firmó el cliente)',
+        'pdf_open' => 'PDF',
+        'carrier_disclosed' => 'Mostrar la aseguradora en el binder',
+        'carrier_disclosed_on' => 'Aseguradora autorizada en el binder',
+        'carrier_disclosed_off' => 'Aseguradora oculta en el binder',
+        'carrier_disclosed_hint' => 'Por defecto el cliente nunca ve la aseguradora. Solo un administrador puede autorizar mostrarla, y solo en el binder.',
         'stages' => [
             'lead' => 'Lead calificado',
             'quote_sent' => 'Quote formal enviado',
@@ -271,6 +280,7 @@ return [
     ],
 
     'field' => [
+        'document' => 'Documento',
         'is_demo' => 'DEMO (registro de prueba)',
         'company_name' => 'Nombre de la empresa',
         'company_representative' => 'Representante de la empresa',

@@ -324,6 +324,35 @@ class QuoteResource extends Resource
             });
     }
 
+    /** The quote's documents: proposal, binder (once it exists) and the signed copy. */
+    public static function pdfAction(string $actionClass = Tables\Actions\Action::class)
+    {
+        return $actionClass::make('pdf')
+            ->label(__('panel.action.pdf'))
+            ->icon('heroicon-o-document-arrow-down')
+            ->color('primary')
+            ->modalHeading(__('panel.action.pdf_heading'))
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel(__('filament-actions::modal.actions.cancel.label'))
+            ->modalContent(fn (Quote $record) => view('filament.quote-pdf', ['quote' => $record]));
+    }
+
+    /**
+     * Admins decide whether the carrier's name may appear on the binder. Off by default: the
+     * client sees the description of the coverage, never the carrier, anywhere else.
+     */
+    public static function carrierDisclosureAction(string $actionClass = Tables\Actions\Action::class)
+    {
+        return $actionClass::make('carrierDisclosure')
+            ->label(fn (Quote $record) => $record->carrier_disclosed ? __('panel.quote.carrier_disclosed_on') : __('panel.quote.carrier_disclosed_off'))
+            ->icon(fn (Quote $record) => $record->carrier_disclosed ? 'heroicon-o-eye' : 'heroicon-o-eye-slash')
+            ->color('gray')
+            ->requiresConfirmation()
+            ->modalDescription(__('panel.quote.carrier_disclosed_hint'))
+            ->visible(fn (Quote $record) => auth()->user()->isAdmin())
+            ->action(fn (Quote $record) => $record->update(['carrier_disclosed' => ! $record->carrier_disclosed]));
+    }
+
     /** Show / revoke / renew the client's signing link. */
     public static function linkActions(string $actionClass = Tables\Actions\Action::class): array
     {
@@ -425,6 +454,7 @@ class QuoteResource extends Resource
             ])
             ->actions([
                 static::moveAction(),
+                static::pdfAction(),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])

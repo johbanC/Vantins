@@ -1,0 +1,1 @@
+<div class="foot">{{ config('vantins.agency_phone') }} &nbsp;&middot;&nbsp; support@vantins.com &nbsp;&middot;&nbsp; 28 W Flagler St Ste 300B #336 Miami, FL 33130 US &nbsp;&middot;&nbsp; https://www.vantins.com/</div>

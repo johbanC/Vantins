@@ -24,6 +24,7 @@
             <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand text-navy-dark">&check;</div>
             <h2 class="text-lg font-semibold">{{ __('app.thanks_title') }}</h2>
             <p class="mt-2 text-sm text-white/60">{{ __('app.thanks_body') }}</p>
+            <a href="{{ route('applications.signed', $application->token) }}" target="_blank" class="{{ $btn }} mt-5 inline-block">{{ __('app.download_signed_copy') }}</a>
         </div>
 
     {{-- ===== DONE: advisor saved (no signature yet) ===== --}}
@@ -54,6 +55,7 @@
                     {{ \App\Support\Format::dateTime($application->disclosure_accepted_at) }}
                 </p>
             </div>
+            <a href="{{ route('applications.signed', $application->token) }}" target="_blank" class="{{ $btn }} inline-block">{{ __('app.download_signed_copy') }}</a>
             @include('livewire.partials.apply-review')
         </div>
 

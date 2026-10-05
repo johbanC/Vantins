@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Quote;
 use App\Models\QuoteDocument;
+use App\Support\PdfDocuments;
 use App\Support\QuotePipeline;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
@@ -55,28 +56,9 @@ class ProposalAccept extends Component
         }
     }
 
-    /** 'open' | 'accepted' | 'expired' | 'revoked' | 'unavailable' */
     public function state(): string
     {
-        $quote = $this->quote;
-
-        if ($quote->accepted_at !== null) {
-            return 'accepted';
-        }
-
-        $link = $quote->acceptanceStatus();
-
-        if (in_array($link, ['expired', 'revoked'], true)) {
-            return $link;
-        }
-
-        // Only the proposal that is currently in front of the client can be signed.
-        $current = $quote->isCurrent()
-            && $quote->stage === 'quote_sent'
-            && $quote->application->selected_quote_id === $quote->id
-            && ! $quote->application->isCancelled();
-
-        return $current ? 'open' : 'unavailable';
+        return $this->quote->clientState();
     }
 
     public function sign(): void
@@ -102,6 +84,14 @@ class ProposalAccept extends Component
         });
 
         $this->quote->refresh();
+
+        // The PDF exactly as signed. A rendering problem must not lose the acceptance.
+        try {
+            PdfDocuments::storeAcceptedProposal($this->quote);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         $this->done = 'accepted';
     }
 

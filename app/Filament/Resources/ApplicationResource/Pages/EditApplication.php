@@ -32,6 +32,7 @@ class EditApplication extends EditRecord
                 ->modalContent(fn () => view('filament.application-pdf', [
                     'en' => route('applications.pdf', ['token' => $this->record->token, 'locale' => 'en']),
                     'es' => route('applications.pdf', ['token' => $this->record->token, 'locale' => 'es']),
+                    'signed' => $this->record->isLocked() ? route('applications.signed', $this->record->token) : null,
                 ])),
             Actions\Action::make('changeStatus')
                 ->label(__('panel.action.change_status'))

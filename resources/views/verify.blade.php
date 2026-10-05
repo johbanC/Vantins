@@ -12,7 +12,17 @@
             <img src="{{ asset('images/brand/logo-white.png') }}" alt="Vantins" class="h-9 w-auto">
         </div>
 
-        @if ($application)
+        @if ($quote)
+            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-2xl">&check;</div>
+            <h1 class="text-lg font-semibold">Valid document / Documento válido</h1>
+            <p class="mt-2 text-sm text-white/60">This is a genuine Vantins Insurance Agency document.</p>
+            <dl class="mt-5 space-y-1 text-left text-sm">
+                <div class="flex justify-between border-b border-white/10 py-1"><dt class="text-white/50">Reference</dt><dd>{{ $quote->verification_code }}</dd></div>
+                <div class="flex justify-between border-b border-white/10 py-1"><dt class="text-white/50">Document</dt><dd>{{ $quote->accepted_at ? 'Accepted proposal' : 'Proposal' }}{{ $quote->hasBinder() ? ' / Binder' : '' }}</dd></div>
+                <div class="flex justify-between border-b border-white/10 py-1"><dt class="text-white/50">Company</dt><dd>{{ $quote->application->company_name ?: '—' }}</dd></div>
+                <div class="flex justify-between py-1"><dt class="text-white/50">Issued</dt><dd>{{ \App\Support\Format::date($quote->accepted_at ?? $quote->sent_at ?? $quote->created_at, 'en') }}</dd></div>
+            </dl>
+        @elseif ($application)
             <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-2xl">&check;</div>
             <h1 class="text-lg font-semibold">Valid document</h1>
             <p class="mt-2 text-sm text-white/60">
@@ -22,7 +32,7 @@
                 <div class="flex justify-between border-b border-white/10 py-1"><dt class="text-white/50">Reference</dt><dd>{{ $application->verification_code }}</dd></div>
                 <div class="flex justify-between border-b border-white/10 py-1"><dt class="text-white/50">Company</dt><dd>{{ $application->company_name ?: '—' }}</dd></div>
                 <div class="flex justify-between border-b border-white/10 py-1"><dt class="text-white/50">Status</dt><dd class="uppercase">{{ str_replace('_', ' ', $application->status) }}</dd></div>
-                <div class="flex justify-between py-1"><dt class="text-white/50">Issued</dt><dd>{{ $application->created_at->format('M d, Y') }}</dd></div>
+                <div class="flex justify-between py-1"><dt class="text-white/50">Issued</dt><dd>{{ \App\Support\Format::date($application->created_at, 'en') }}</dd></div>
             </dl>
         @else
             <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-500 text-2xl">&times;</div>

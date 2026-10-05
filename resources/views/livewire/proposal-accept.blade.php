@@ -23,6 +23,7 @@
             <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand text-navy-dark">&check;</div>
             <h2 class="text-lg font-semibold">{{ __('app.proposal_thanks_title') }}</h2>
             <p class="mx-auto mt-2 max-w-md text-sm text-white/60">{{ __('app.proposal_thanks_body') }}</p>
+            <a href="{{ route('proposal.signed', $quote->acceptance_token) }}" target="_blank" class="{{ $btn }} mt-5 inline-block">{{ __('app.download_signed_copy') }}</a>
         </div>
 
     @elseif (in_array($state, ['expired', 'revoked', 'unavailable']))
@@ -88,6 +89,17 @@
                 </table>
             </div>
             <p class="mt-3 text-xs text-white/40">{{ __('app.proposal_estimate_note') }}</p>
+
+            <div class="mt-4 flex flex-wrap gap-3 text-sm">
+                @if ($state === 'accepted')
+                    <a href="{{ route('proposal.signed', $quote->acceptance_token) }}" target="_blank" class="{{ $btn }}">{{ __('app.download_signed_copy') }}</a>
+                    @if ($quote->hasBinder())
+                        <a href="{{ route('proposal.binder', [$quote->acceptance_token, $locale]) }}" target="_blank" class="rounded-lg border border-white/20 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10">{{ __('app.download_binder') }}</a>
+                    @endif
+                @else
+                    <a href="{{ route('proposal.pdf', [$quote->acceptance_token, $locale]) }}" target="_blank" class="rounded-lg border border-white/20 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10">{{ __('app.download_proposal') }}</a>
+                @endif
+            </div>
 
             @if ($state === 'open')
                 <div class="mt-8 border-t border-white/10 pt-6">

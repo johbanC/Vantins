@@ -197,6 +197,15 @@ return [
         'filter_agent' => 'Agent',
         'open_quote' => 'Open quote',
         'no_quotes' => 'No quotes yet.',
+        'pdf_proposal' => 'Formal proposal',
+        'pdf_binder' => 'Binder',
+        'pdf_signed' => 'Signed copy (exactly as the client signed it)',
+        'pdf_application_signed' => 'Signed copy of the application (exactly as the client signed it)',
+        'pdf_open' => 'PDF',
+        'carrier_disclosed' => 'Show the carrier on the binder',
+        'carrier_disclosed_on' => 'Carrier authorized on the binder',
+        'carrier_disclosed_off' => 'Carrier hidden on the binder',
+        'carrier_disclosed_hint' => 'By default the client never sees the carrier. Only an admin can authorize showing it, and only on the binder.',
         'stages' => [
             'lead' => 'Qualified lead',
             'quote_sent' => 'Formal quote sent',
@@ -271,6 +280,7 @@ return [
     ],
 
     'field' => [
+        'document' => 'Document',
         'is_demo' => 'DEMO (test record)',
         'company_name' => 'Company name',
         'company_representative' => 'Company representative',

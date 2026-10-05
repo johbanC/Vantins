@@ -43,6 +43,7 @@ class Quote extends Model
 
     protected $casts = [
         'is_demo' => 'boolean',
+        'carrier_disclosed' => 'boolean',
         'superseded_at' => 'datetime',
         'follow_up_at' => 'date',
         'quoted_at' => 'date',
@@ -66,6 +67,7 @@ class Quote extends Model
     protected static function booted(): void
     {
         static::creating(function (Quote $quote): void {
+            $quote->verification_code ??= strtoupper(Str::random(10));
             $quote->client_id ??= $quote->application?->client_id;
             $quote->is_demo = (bool) ($quote->application?->is_demo ?? $quote->is_demo);
             $quote->effective_date ??= $quote->application?->effective_date;
@@ -161,6 +163,21 @@ class Quote extends Model
         return round($this->totalPayable() - $this->totalCost(), 2);
     }
 
+    /** Binder, paid or sold: the stages where a binder document exists. */
+    public function hasBinder(): bool
+    {
+        return in_array($this->stage, ['binder', 'paid', 'sold'], true) && filled($this->binder_number);
+    }
+
+    /**
+     * The carrier's name as the client may see it: only on the binder, and only when an admin
+     * authorised it. Everywhere else the client gets the description of the coverage instead.
+     */
+    public function carrierNameForBinder(): ?string
+    {
+        return $this->carrier_disclosed && $this->hasBinder() ? $this->carrier?->name : null;
+    }
+
     // ---- links ------------------------------------------------------------------------------
 
     /** 'none' | 'open' | 'expired' | 'revoked' | 'accepted' */
@@ -173,6 +190,30 @@ class Quote extends Model
             $this->acceptance_expires_at !== null && $this->acceptance_expires_at->isPast() => 'expired',
             default => 'open',
         };
+    }
+
+    /**
+     * What the client's link allows: 'open' (can sign), 'accepted', 'expired', 'revoked' or 'unavailable'
+     * (it is no longer the proposal in front of the client).
+     */
+    public function clientState(): string
+    {
+        if ($this->accepted_at !== null) {
+            return 'accepted';
+        }
+
+        $link = $this->acceptanceStatus();
+
+        if (in_array($link, ['expired', 'revoked'], true)) {
+            return $link;
+        }
+
+        $current = $this->isCurrent()
+            && $this->stage === 'quote_sent'
+            && $this->application->selected_quote_id === $this->id
+            && ! $this->application->isCancelled();
+
+        return $current ? 'open' : 'unavailable';
     }
 
     public function acceptanceUrl(): ?string
@@ -212,7 +253,7 @@ class Quote extends Model
 
         return DB::transaction(function (): self {
             $copy = $this->replicate([
-                'stage', 'version', 'previous_quote_id', 'superseded_at', 'sent_at', 'binder_number', 'binder_effective_date',
+                'stage', 'version', 'verification_code', 'accepted_pdf_path', 'carrier_disclosed', 'previous_quote_id', 'superseded_at', 'sent_at', 'binder_number', 'binder_effective_date',
                 'paid_at', 'policy_number', 'closed_at', 'loss_reason', 'loss_note', 'competitor',
                 'acceptance_token', 'acceptance_expires_at', 'acceptance_revoked_at',
                 'accepted_at', 'accepted_signer_name', 'accepted_signature_path', 'accepted_ip', 'accepted_snapshot',
@@ -235,7 +276,7 @@ class Quote extends Model
                 $this->application->forceFill(['selected_quote_id' => null])->save();
             }
 
-            return $copy;
+            return $copy->refresh();
         });
     }
 

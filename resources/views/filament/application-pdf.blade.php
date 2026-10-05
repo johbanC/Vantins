@@ -23,4 +23,13 @@
             {{ __('panel.action.pdf_en') }}
         </x-filament::button>
     </div>
+
+    @if (! empty($signed))
+        <div>
+            <p class="mb-2 text-sm font-semibold">{{ __('panel.quote.pdf_application_signed') }}</p>
+            <x-filament::button tag="a" :href="$signed" target="_blank" color="success" icon="heroicon-o-check-badge">
+                {{ __('panel.quote.pdf_open') }}
+            </x-filament::button>
+        </div>
+    @endif
 </div>
