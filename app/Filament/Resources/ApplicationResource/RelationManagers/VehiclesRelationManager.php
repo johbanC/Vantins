@@ -23,7 +23,7 @@ class VehiclesRelationManager extends RelationManager
     public function form(Form $form): Form
     {
         return $form->columns(2)->schema([
-            Forms\Components\TextInput::make('year')->label(__('app.year'))->maxLength(4)
+            Forms\Components\TextInput::make('year')->label(__('app.year'))->extraInputAttributes(['maxlength' => 4, 'inputmode' => 'numeric'])
                 ->rules(['integer', 'between:1950,'.(now()->year + 1)])
                 ->live(onBlur: true)
                 ->validationMessages(['between' => __('app.validation.year_range', ['min' => 1950, 'max' => now()->year + 1])]),

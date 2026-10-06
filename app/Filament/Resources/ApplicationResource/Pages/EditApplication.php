@@ -49,8 +49,10 @@ class EditApplication extends EditRecord
                     'signed' => $this->record->isLocked() ? route('applications.signed', $this->record->token) : null,
                 ])),
             ApplicationResource::welcomeLetterAction(Actions\Action::class),
-            ApplicationResource::renewLinkAction(Actions\Action::class),
-            ApplicationResource::revokeLinkAction(Actions\Action::class),
+            Actions\ActionGroup::make([
+                ApplicationResource::renewLinkAction(Actions\Action::class),
+                ApplicationResource::revokeLinkAction(Actions\Action::class),
+            ])->label(__('panel.action.client_link'))->icon('heroicon-o-link')->color('gray')->button(),
             Actions\Action::make('changeStatus')
                 ->label(__('panel.action.change_status'))
                 ->icon('heroicon-o-arrow-path')
