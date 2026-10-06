@@ -71,7 +71,7 @@ class QuoteResource extends Resource
         return Application::query()
             ->when(! $user->isAdmin(), fn (Builder $q) => $q->where('created_by', $user->id))
             ->when($search, fn (Builder $q) => $q->where('company_name', 'like', '%'.addcslashes($search, '%_\\').'%'))
-            ->latest()->limit(30)->pluck('company_name', 'id')->all();
+            ->latest()->limit(30)->get()->mapWithKeys(fn (Application $application) => [$application->id => $application->pickerLabel()])->all();
     }
 
     /** The application's own coverages, as a starting point for this carrier's lines. */
@@ -102,7 +102,7 @@ class QuoteResource extends Resource
                     ->label(__('panel.quote.application'))
                     ->options(fn () => static::applicationOptions())
                     ->getSearchResultsUsing(fn (string $search) => static::applicationOptions($search))
-                    ->getOptionLabelUsing(fn ($value) => Application::find($value)?->company_name)
+                    ->getOptionLabelUsing(fn ($value) => Application::find($value)?->pickerLabel())
                     ->default(fn () => request()->integer('application') ?: null)
                     ->required()
                     ->searchable()

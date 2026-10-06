@@ -411,4 +411,10 @@ class Application extends Model
     {
         return ['application_id' => $this->getKey(), 'client_id' => $this->client_id];
     }
+
+    /** Text for pickers and lists: an application may have no company name yet. */
+    public function pickerLabel(): string
+    {
+        return $this->company_name ?: '#'.$this->getKey();
+    }
 }

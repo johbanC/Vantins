@@ -188,4 +188,10 @@ class Client extends Model
     {
         return ['application_id' => null, 'client_id' => $this->getKey()];
     }
+
+    /** Text for pickers and lists: a client may have no company name yet. */
+    public function pickerLabel(): string
+    {
+        return $this->company_name ?: ($this->contact_name ?: '#'.$this->getKey());
+    }
 }

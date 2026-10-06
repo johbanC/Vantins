@@ -72,8 +72,8 @@ class ApplicationResource extends Resource
                         ->required()
                         ->searchable()
                         ->native(false)
-                        ->getSearchResultsUsing(fn (string $search) => Client::query()->search($search)->limit(30)->pluck('company_name', 'id')->all())
-                        ->getOptionLabelUsing(fn ($value) => Client::find($value)?->company_name)
+                        ->getSearchResultsUsing(fn (string $search) => Client::query()->search($search)->limit(30)->get()->mapWithKeys(fn (Client $client) => [$client->id => $client->pickerLabel()])->all())
+                        ->getOptionLabelUsing(fn ($value) => Client::find($value)?->pickerLabel())
                         ->createOptionForm(ClientResource::formSchema())
                         ->createOptionUsing(fn (array $data) => Client::create($data + ['created_by' => auth()->id()])->getKey())
                         ->columnSpanFull(),
