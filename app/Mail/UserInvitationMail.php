@@ -13,14 +13,11 @@ class UserInvitationMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public User $user, public string $url, public int $validDays)
-    {
-        $this->locale($user->locale ?: 'en');
-    }
+    public function __construct(public User $user, public string $url, public int $validDays) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: __('mail.invitation_subject'));
+        return new Envelope(subject: __('mail.invitation_subject', [], 'es').' / '.__('mail.invitation_subject', [], 'en'));
     }
 
     public function content(): Content

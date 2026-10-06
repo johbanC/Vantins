@@ -42,7 +42,7 @@ class UserResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('email')
-                    ->label(__('panel.field.email'))
+                    ->label(__('panel.user.email'))
                     ->email()
                     ->required()
                     ->maxLength(255),
@@ -53,12 +53,6 @@ class UserResource extends Resource
                     ->required()
                     ->native(false)
                     ->default('agent'),
-                Forms\Components\Select::make('locale')
-                    ->label(__('panel.user.locale'))
-                    ->options(['es' => 'Español', 'en' => 'English'])
-                    ->default(fn () => app()->getLocale())
-                    ->required()
-                    ->native(false),
                 Forms\Components\TextInput::make('password')
                     ->label(__('panel.user.password'))
                     ->password()
@@ -138,21 +132,21 @@ class UserResource extends Resource
     public static function resendInvitationAction(string $actionClass = Tables\Actions\Action::class)
     {
         return $actionClass::make('resendInvitation')
-            ->label(__('panel.user.invite_resend'))
+            ->label(fn (User $record) => __($record->hasPendingInvitation() ? 'panel.user.invite_resend' : 'panel.user.invite_send'))
             ->icon('heroicon-o-paper-airplane')
             ->requiresConfirmation()
             ->modalDescription(__('panel.user.invite_resend_confirm'))
-            ->visible(fn (User $record) => $record->hasPendingInvitation() && auth()->user()->can('update', $record))
+            ->visible(fn (User $record) => auth()->user()->can('update', $record))
             ->action(fn (User $record) => static::sendInvitation($record));
     }
 
-    /** For when the email does not arrive: a fresh link to hand over by other means. */
+    /** For when the email does not arrive (or the password was lost): a fresh link to hand over by other means. */
     public static function copyInvitationLinkAction(string $actionClass = Tables\Actions\Action::class)
     {
         return $actionClass::make('copyInvitationLink')
             ->label(__('panel.user.invite_copy'))
             ->icon('heroicon-o-link')
-            ->visible(fn (User $record) => $record->hasPendingInvitation() && auth()->user()->can('update', $record))
+            ->visible(fn (User $record) => auth()->user()->can('update', $record))
             ->action(function (User $record) {
                 $url = UserInvitations::linkToShare($record);
 

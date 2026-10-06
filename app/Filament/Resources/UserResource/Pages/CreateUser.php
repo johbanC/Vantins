@@ -16,6 +16,7 @@ class CreateUser extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $this->invite = blank($data['password'] ?? null);
+        $data['locale'] ??= app()->getLocale();
 
         if ($this->invite) {
             // The column cannot be empty; nobody knows this value, the invitation replaces it.

@@ -34,7 +34,7 @@ class UserInvitationTest extends TestCase
     {
         Livewire::actingAs($this->admin)
             ->test(CreateUser::class)
-            ->fillForm($data + ['role' => 'agent', 'locale' => 'es'])
+            ->fillForm($data + ['role' => 'agent'])
             ->call('create')
             ->assertHasNoFormErrors();
     }
@@ -58,7 +58,8 @@ class UserInvitationTest extends TestCase
             return $mail->hasTo('ana@vantins.test')
                 && str_contains($mail->url, '/admin/password-reset/reset')
                 && str_contains($mail->render(), e($mail->url))
-                && str_contains($mail->render(), 'Crear mi contraseña');
+                && str_contains($mail->render(), 'Crear mi contraseña')
+                && str_contains($mail->render(), 'Create my password');
         });
 
         $this->assertTrue(ActivityLog::where('event', 'link_issued')->where('subject_id', $user->id)->where('subject_type', $user->auditType())->exists());
@@ -128,20 +129,34 @@ class UserInvitationTest extends TestCase
         $this->assertGreaterThanOrEqual(2, UserInvitations::validDays());
     }
 
-    public function test_resending_sends_a_new_email_only_to_pending_users(): void
+    public function test_the_actions_are_available_for_pending_and_active_users_alike(): void
     {
-        $user = $this->pendingUser();
+        $pending = $this->pendingUser();
         $active = User::factory()->create(['role' => 'agent']);
         $active->forceFill(['password_set_at' => now()])->save();
 
         Livewire::actingAs($this->admin)
             ->test(ListUsers::class)
-            ->assertTableActionVisible('resendInvitation', $user)
-            ->assertTableActionHidden('resendInvitation', $active)
-            ->callTableAction('resendInvitation', $user)
+            ->assertTableActionVisible('resendInvitation', $pending)
+            ->assertTableActionVisible('resendInvitation', $active)
+            ->assertTableActionVisible('copyInvitationLink', $active)
+            ->callTableAction('resendInvitation', $pending)
+            ->callTableAction('resendInvitation', $active)
             ->assertNotified();
 
-        Mail::assertSent(UserInvitationMail::class, 2);
+        Mail::assertSent(UserInvitationMail::class, 3);
+        $this->assertFalse($active->fresh()->hasPendingInvitation(), 'sending a link does not deactivate an active account');
+    }
+
+    public function test_the_form_has_no_language_field_and_the_email_goes_out_in_both_languages(): void
+    {
+        Livewire::actingAs($this->admin)->test(CreateUser::class)->assertFormFieldDoesNotExist('locale');
+
+        $user = $this->pendingUser();
+
+        Mail::assertSent(UserInvitationMail::class, fn (UserInvitationMail $mail) => $mail->hasTo($user->email)
+            && str_contains($mail->render(), 'Estimado/a Ana Agent')
+            && str_contains($mail->render(), 'Dear Ana Agent'));
     }
 
     public function test_the_link_can_be_copied_when_the_email_does_not_arrive(): void

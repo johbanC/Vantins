@@ -13,7 +13,7 @@ return [
     'email_us' => 'Email us',
     'invitation_subject' => 'Your Vantins access',
     'invitation_preheader' => 'Create your password to enter the Vantins panel.',
-    'invitation_intro' => 'An account was created for you in the Vantins Insurance Agency panel. To activate it, create your own password with the button below.',
+    'invitation_intro' => 'You have access to the Vantins Insurance Agency panel. To sign in, create your own password with the button below.',
     'invitation_role' => 'Your role: :role.',
     'invitation_button' => 'Create my password',
     'invitation_valid' => 'This link is personal and works for :days day(s). If it expires, ask for a new invitation.',
