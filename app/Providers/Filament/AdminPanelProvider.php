@@ -28,6 +28,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->passwordReset()
             ->brandName('Vantins')
             ->brandLogo(asset('images/brand/logo-dark.png'))
             ->darkModeBrandLogo(asset('images/brand/logo-white.png'))

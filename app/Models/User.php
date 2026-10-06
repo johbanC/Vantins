@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Concerns\RecordsActivity;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
@@ -17,7 +18,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
-    use \App\Models\Concerns\RecordsActivity, HasFactory, Notifiable;
+    use HasFactory, Notifiable, RecordsActivity;
 
     /**
      * @return array<string, string>
@@ -26,11 +27,19 @@ class User extends Authenticatable implements FilamentUser
     {
         return [
             'email_verified_at' => 'datetime',
+            'invited_at' => 'datetime',
+            'password_set_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
 
     public const ROLES = ['admin', 'agent', 'viewer'];
+
+    /** Invited, but has not chosen a password yet. */
+    public function hasPendingInvitation(): bool
+    {
+        return $this->password_set_at === null;
+    }
 
     public function isAdmin(): bool
     {

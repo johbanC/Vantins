@@ -11,4 +11,12 @@ return [
     'team_name' => 'The Vantins Team',
     'call_us' => 'Call us',
     'email_us' => 'Email us',
+    'invitation_subject' => 'Your Vantins access',
+    'invitation_preheader' => 'Create your password to enter the Vantins panel.',
+    'invitation_intro' => 'An account was created for you in the Vantins Insurance Agency panel. To activate it, create your own password with the button below.',
+    'invitation_role' => 'Your role: :role.',
+    'invitation_button' => 'Create my password',
+    'invitation_valid' => 'This link is personal and works for :days day(s). If it expires, ask for a new invitation.',
+    'invitation_fallback' => 'If the button does not work, copy and paste this address into your browser:',
+    'invitation_ignore' => 'If you were not expecting this email, ignore it: the account is not activated until you create the password.',
 ];

@@ -96,7 +96,8 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
-            'expire' => 60,
+            // Also the lifetime of an invitation link: nobody opens their mailbox within the hour.
+            'expire' => (int) env('AUTH_PASSWORD_RESET_EXPIRE', 4320),
             'throttle' => 60,
         ],
     ],
